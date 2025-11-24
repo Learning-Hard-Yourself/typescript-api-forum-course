@@ -1,12 +1,10 @@
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
-
-import { Application } from '@/bootstrap/Application'
+import { createTestApplication } from '@tests/support/createTestApplication'
 
 describe('GET /api/health', () => {
   it('returns status ok', async () => {
-    const application = new Application()
-    const app = await application.create()
+    const { app } = await createTestApplication()
 
     const response = await request(app).get('/api/health')
 

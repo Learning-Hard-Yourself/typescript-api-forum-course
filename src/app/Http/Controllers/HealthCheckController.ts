@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import type { Request, Response } from 'express'
 
 export class HealthCheckController {
   public handle(request: Request, response: Response): void {

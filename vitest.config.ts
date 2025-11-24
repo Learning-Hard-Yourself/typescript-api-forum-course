@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
 const rootDirectory = fileURLToPath(new URL('./src', import.meta.url))
+const testsDirectory = fileURLToPath(new URL('./tests', import.meta.url))
 
 export default defineConfig({
   test: {
@@ -13,6 +14,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': rootDirectory,
+      '@tests': testsDirectory,
     },
   },
 })

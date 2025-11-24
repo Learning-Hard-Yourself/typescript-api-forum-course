@@ -3,9 +3,11 @@
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "rootDir": "src",
     "outDir": "dist",
-    "types": ["node", "vitest"],
+    "types": [
+      "node",
+      "vitest"
+    ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
@@ -17,10 +19,20 @@
     "resolveJsonModule": true,
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["*"],
-      "@tests/*": ["../tests/*"]
+      "@/*": [
+        "*"
+      ],
+      "@tests/*": [
+        "../tests/*"
+      ]
     }
   },
-  "include": ["src", "tests"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "src",
+    "tests"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }

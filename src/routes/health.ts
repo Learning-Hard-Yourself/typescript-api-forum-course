@@ -1,4 +1,4 @@
-import { Express } from 'express'
+import type { Express } from 'express'
 
 import { HealthCheckController } from '@/app/Http/Controllers/HealthCheckController'
 

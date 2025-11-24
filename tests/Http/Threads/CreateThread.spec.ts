@@ -1,0 +1,65 @@
+import { eq } from 'drizzle-orm'
+import request from 'supertest'
+import { v7 as uuidv7 } from 'uuid'
+import { describe, expect, it } from 'vitest'
+
+import { categories, posts, threads, users } from '@/database/schema'
+import { createTestApplication } from '@tests/support/createTestApplication'
+
+describe('POST /api/threads', () => {
+    it('creates a new thread with initial post', async () => {
+        const context = await createTestApplication()
+
+        // Create user
+        const userId = 'usr_1'
+        await context.database.insert(users).values({
+            id: userId,
+            username: 'testuser',
+            email: 'test@example.com',
+            displayName: 'Test User',
+            role: 'user',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            lastActiveAt: new Date().toISOString(),
+        })
+
+        // Create category
+        const categoryId = uuidv7()
+        await context.database.insert(categories).values({
+            id: categoryId,
+            name: 'General',
+            slug: 'general',
+            order: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        })
+
+        const payload = {
+            categoryId,
+            title: 'Hello World',
+            content: 'This is the first post content.',
+        }
+
+        const response = await request(context.app)
+            .post('/api/threads')
+            .send(payload)
+            .expect(201)
+
+        expect(response.body.data).toMatchObject({
+            title: 'Hello World',
+            categoryId,
+        })
+
+        // Verify Thread
+        const [thread] = await context.database.select().from(threads).where(eq(threads.id, response.body.data.id))
+        expect(thread).toBeDefined()
+        expect(thread.title).toBe('Hello World')
+        expect(thread.slug).toBe('hello-world') // Auto-generated slug
+
+        // Verify Initial Post
+        const [post] = await context.database.select().from(posts).where(eq(posts.threadId, thread.id))
+        expect(post).toBeDefined()
+        expect(post.content).toBe('This is the first post content.')
+        expect(thread.lastPostId).toBe(post.id)
+    })
+})

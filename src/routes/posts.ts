@@ -9,6 +9,7 @@ import { PostResource } from '@/app/features/posts/resources/PostResource'
 import { PostModerationService } from '@/app/features/posts/services/PostModerationService'
 import { PostService } from '@/app/features/posts/services/PostService'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
+import { rateLimiters } from '@/app/shared/http/middleware/RateLimitMiddleware'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class PostRoutes {
@@ -31,8 +32,8 @@ export class PostRoutes {
     }
 
     public map(server: Express): void {
-        server.post('/api/v1/posts', authMiddleware, (request, response, next) => this.controller.store(request, response, next))
-        server.post('/api/v1/posts/:id/reply', authMiddleware, (request, response, next) => this.controller.reply(request, response, next))
+        server.post('/api/v1/posts', authMiddleware, rateLimiters.createPost, (request, response, next) => this.controller.store(request, response, next))
+        server.post('/api/v1/posts/:id/reply', authMiddleware, rateLimiters.createReply, (request, response, next) => this.controller.reply(request, response, next))
         server.get('/api/v1/threads/:threadId/posts', (request, response, next) => this.controller.getThreadPosts(request, response, next))
         server.patch('/api/v1/posts/:id', authMiddleware, (request, response, next) => this.controller.edit(request, response, next))
         server.delete('/api/v1/posts/:id', authMiddleware, (request, response, next) => this.controller.delete(request, response, next))

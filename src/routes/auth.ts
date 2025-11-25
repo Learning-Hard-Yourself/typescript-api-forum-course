@@ -5,6 +5,7 @@ import { GetCurrentUser } from '@/app/features/auth/use-cases/GetCurrentUser'
 import { LoginUser } from '@/app/features/auth/use-cases/LoginUser'
 import { LogoutUser } from '@/app/features/auth/use-cases/LogoutUser'
 import { RegisterUser } from '@/app/features/auth/use-cases/RegisterUser'
+import { rateLimiters } from '@/app/shared/http/middleware/RateLimitMiddleware'
 import { initAuth } from '@/config/auth'
 import type { ApplicationDependencies } from '@/routes/types'
 
@@ -25,7 +26,7 @@ export class AuthRoutes {
 
   public map(server: Express): void {
     // Register endpoint
-    server.post('/api/v1/auth/register', async (request: Request, response: Response, next: NextFunction) => {
+    server.post('/api/v1/auth/register', rateLimiters.auth, async (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = await this.registerUser.execute(request, response, request.body)
         response.status(201).json({ data: result })
@@ -43,7 +44,7 @@ export class AuthRoutes {
     })
 
     // Login endpoint
-    server.post('/api/v1/auth/login', async (request: Request, response: Response, next: NextFunction) => {
+    server.post('/api/v1/auth/login', rateLimiters.auth, async (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = await this.loginUser.execute(request, response, request.body)
         response.status(200).json({ data: result })

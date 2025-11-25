@@ -5,11 +5,6 @@ import type { ForumDatabase } from '@/config/database-types'
 
 type ResourceType = 'post' | 'thread' | 'profile' | 'user'
 
-/**
- * Require Ownership Middleware Factory
- * 
- * Creates middleware that verifies the user owns the resource or has moderator/admin privileges
- */
 export function createRequireOwnership(database: ForumDatabase) {
     const permissionService = new PermissionService(database)
 

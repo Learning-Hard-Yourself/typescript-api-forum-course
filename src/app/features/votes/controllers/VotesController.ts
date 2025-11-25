@@ -1,12 +1,3 @@
-/**
- * Votes Controller - HTTP request handling for voting
- *
- * Demonstrates:
- * - Express types and request handling
- * - Async error handling
- * - Response formatting
- */
-
 import type { Logger } from '@/app/shared/logging/Logger'
 import type { NextFunction, Request, Response } from 'express'
 
@@ -22,14 +13,10 @@ export class VotesController {
         private readonly logger?: Logger,
     ) { }
 
-    /**
-     * Cast or update a vote on a post
-     * POST /api/posts/:postId/vote
-     */
     public async vote(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const postId = request.params.postId as string
-            const userId = request.params.userId ?? 'anonymous' // TODO: Get from auth
+            const userId = request.user!.id
 
             if (!postId) {
                 response.status(400).json({ message: 'Post ID is required' })
@@ -56,14 +43,10 @@ export class VotesController {
         }
     }
 
-    /**
-     * Remove a vote from a post
-     * DELETE /api/posts/:postId/vote
-     */
     public async removeVote(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const postId = request.params.postId as string
-            const userId = request.params.userId ?? 'anonymous' // TODO: Get from auth
+            const userId = request.user!.id
 
             if (!postId) {
                 response.status(400).json({ message: 'Post ID is required' })
@@ -94,10 +77,6 @@ export class VotesController {
         }
     }
 
-    /**
-     * Get vote summary for a post
-     * GET /api/posts/:postId/votes
-     */
     public async getVoteSummary(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const postId = request.params.postId as string

@@ -25,7 +25,7 @@ export class AuthRoutes {
   }
 
   public map(server: Express): void {
-    // Register endpoint
+
     server.post('/api/v1/auth/register', rateLimiters.auth, async (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = await this.registerUser.execute(request, response, request.body)
@@ -43,7 +43,6 @@ export class AuthRoutes {
       }
     })
 
-    // Login endpoint
     server.post('/api/v1/auth/login', rateLimiters.auth, async (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = await this.loginUser.execute(request, response, request.body)
@@ -59,7 +58,6 @@ export class AuthRoutes {
       }
     })
 
-    // Get session endpoint
     server.get('/api/v1/auth/me', async (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = await this.getCurrentUser.execute(request)
@@ -72,7 +70,6 @@ export class AuthRoutes {
       }
     })
 
-    // Logout endpoint
     server.post('/api/v1/auth/logout', async (request: Request, response: Response, next: NextFunction) => {
       try {
         await this.logoutUser.execute(request, response)

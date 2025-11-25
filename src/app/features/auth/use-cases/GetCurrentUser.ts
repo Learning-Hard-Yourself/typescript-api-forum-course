@@ -27,11 +27,10 @@ export class GetCurrentUser {
     }
 
     async execute(req: Request): Promise<GetCurrentUserResult> {
-        // Call better-auth handler
+
         const webRequest = toWebRequest(req, '/api/auth/get-session')
         const betterAuthResponse = await this.auth.handler(webRequest)
 
-        // Parse response
         const rawBody = await betterAuthResponse.text()
         const body = rawBody ? JSON.parse(rawBody) : null
 
@@ -39,7 +38,6 @@ export class GetCurrentUser {
             throw new Error('Unauthorized')
         }
 
-        // Fetch and format the complete user
         const safeUser = await this.userFetcher.fetchAndFormatUser(body.user)
 
         return { user: safeUser }

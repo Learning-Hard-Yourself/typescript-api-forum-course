@@ -75,7 +75,6 @@ const createAuth = ({ database }: ApplicationDependencies) =>
       user: {
         create: {
           before: async (user) => {
-            // Validate uniqueness for username and email
             const identifiers: Array<string | undefined> = [user.username, user.email?.toLowerCase()]
             if (identifiers.some(Boolean)) {
               const { eq, or } = await import('drizzle-orm')
@@ -106,7 +105,6 @@ const createAuth = ({ database }: ApplicationDependencies) =>
               updatedAt: normaliseDate(user.updatedAt),
             }
 
-            // Map displayName to name for Better Auth core schema
             if (user.displayName) {
               data.displayName = user.displayName
               data.name = user.displayName
@@ -114,12 +112,11 @@ const createAuth = ({ database }: ApplicationDependencies) =>
               data.displayName = user.name
               data.name = user.name
             } else {
-              // Fallback if neither exists
+
               data.name = ''
               data.displayName = ''
             }
 
-            // Map avatarUrl to image for Better Auth core schema
             if (user.avatarUrl !== undefined) {
               data.avatarUrl = user.avatarUrl
               data.image = user.avatarUrl
@@ -131,7 +128,6 @@ const createAuth = ({ database }: ApplicationDependencies) =>
               data.image = null
             }
 
-            // Set defaults for required fields
             data.username = user.username ?? ''
             data.role = user.role ?? 'user'
             data.lastActiveAt = user.lastActiveAt ? normaliseDate(user.lastActiveAt) : new Date().toISOString()

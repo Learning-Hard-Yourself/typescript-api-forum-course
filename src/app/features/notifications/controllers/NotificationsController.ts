@@ -15,16 +15,13 @@ export class NotificationsController {
         this.notificationService = new Service(database)
     }
 
-    /**
-     * GET /api/notifications
-     */
+
     public async list(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const userId = req.user!.id
 
             const notifications = await this.notificationService.getUserNotifications(userId)
 
-            // Format messages for display
             const data = notifications.map((n) => ({
                 ...n,
                 formattedMessage: this.notificationService.formatMessage(n.data),
@@ -37,9 +34,7 @@ export class NotificationsController {
         }
     }
 
-    /**
-     * POST /api/notifications/:id/read
-     */
+
     public async markAsRead(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { id } = req.params

@@ -83,7 +83,7 @@ export const categories = sqliteTable(
     name: text('name').notNull(),
     slug: text('slug').notNull().unique(),
     description: text('description'),
-    parentId: text('parent_id'), // Self-reference handled in code or via raw sql if needed, but simple text is fine for now
+    parentId: text('parent_id'),
     order: integer('order').notNull().default(0),
     createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
@@ -162,7 +162,6 @@ export const votes = sqliteTable(
   }),
 )
 
-// Post edit history table
 export const postEdits = sqliteTable('post_edits', {
   id: text('id').primaryKey(),
   postId: text('post_id')
@@ -182,8 +181,8 @@ export const notifications = sqliteTable('notifications', {
   userId: text('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  type: text('type').notNull(), // 'reply' | 'vote' | 'system'
-  data: text('data', { mode: 'json' }).notNull(), // JSON payload
+  type: text('type').notNull(),
+  data: text('data', { mode: 'json' }).notNull(),
   readAt: text('read_at'),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })

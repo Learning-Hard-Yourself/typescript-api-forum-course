@@ -32,14 +32,6 @@ export class AttachmentsController {
     public async store(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const attributes = this.creationRequest.validate(request.body)
-            // In a real app, we might verify the file was actually uploaded to R2 using the key/url
-            // For now, we trust the client provided the correct URL (or we construct it from key if we passed key back)
-            // Let's assume the client sends the full public URL or we construct it.
-            // The service expects { url } in attributes.
-            // But `AttachmentCreationRequest` doesn't validate `url`.
-            // We should probably add `url` or `key` to the request schema or handle it here.
-            // Let's assume the client sends `url` in the body, but `AttachmentCreationRequest` only validates metadata.
-            // I'll update `AttachmentCreationRequest` or just cast/validate here.
 
             const url = request.body.url
             if (!url) {

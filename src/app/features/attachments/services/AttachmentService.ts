@@ -20,8 +20,7 @@ export class AttachmentService {
         this.bucket = process.env.R2_BUCKET_NAME ?? 'forum-attachments'
 
         if (!accountId || !accessKeyId || !secretAccessKey) {
-            // Warn or throw if not configured, but for now we might want to allow app to start
-            // and fail only when using this service.
+
             console.warn('R2 credentials not fully configured')
         }
 

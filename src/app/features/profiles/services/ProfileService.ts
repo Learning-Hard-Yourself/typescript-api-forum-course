@@ -17,12 +17,7 @@ export class ProfileService {
             .limit(1)
 
         if (!profile) {
-            // If profile doesn't exist, we might want to return a default one or throw 404.
-            // Given the domain, a user always "has" a profile concept, but maybe not a DB row yet if we lazy create.
-            // For now, let's assume strict 1:1 and throw if missing, or return nulls.
-            // Let's return a default empty profile structure if not found, or create it?
-            // "User --< Profile" usually implies existence.
-            // Let's throw NotFound for now to be explicit.
+
             throw new NotFoundError('Profile not found')
         }
 
@@ -30,7 +25,7 @@ export class ProfileService {
     }
 
     public async update(userId: string, attributes: ProfileUpdateAttributes): Promise<Profile> {
-        // Check if profile exists
+
         const existing = await this.database
             .select()
             .from(profiles)
@@ -38,7 +33,7 @@ export class ProfileService {
             .limit(1)
 
         if (existing.length === 0) {
-            // Create if not exists (Upsert logic)
+
             await this.database.insert(profiles).values({
                 userId,
                 ...attributes,

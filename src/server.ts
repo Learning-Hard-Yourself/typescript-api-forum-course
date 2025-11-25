@@ -18,13 +18,13 @@ async function bootstrap(): Promise<void> {
 
   const server = app.listen(port, () => {
     const address = server.address() as AddressInfo
-     
+
     console.log(`🚀 Forum API listening on http://localhost:${address.port}`)
   })
 }
 
 bootstrap().catch((error) => {
-   
+
   console.error('Failed to start server', error)
   process.exitCode = 1
 })

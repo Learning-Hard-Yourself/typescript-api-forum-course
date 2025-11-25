@@ -36,10 +36,7 @@ export class ThreadsController {
         }
     }
 
-    /**
-     * PATCH /api/threads/:id
-     * Update thread (title by author, all by admin/mod)
-     */
+
     public async update(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const userId = request.user!.id
@@ -63,13 +60,9 @@ export class ThreadsController {
         }
     }
 
-    /**
-     * POST /api/threads/:id/pin
-     * Pin thread (admin/moderator only)
-     */
     public async pin(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            const userRole: UserRole = 'admin' // TODO: Get from authenticated user
+            const userRole = (request.user!.role ?? 'user') as UserRole
             const { id } = request.params
 
             if (!id) {
@@ -87,13 +80,9 @@ export class ThreadsController {
         }
     }
 
-    /**
-     * POST /api/threads/:id/unpin
-     * Unpin thread (admin/moderator only)
-     */
     public async unpin(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            const userRole: UserRole = 'admin' // TODO: Get from authenticated user
+            const userRole = (request.user!.role ?? 'user') as UserRole
             const { id } = request.params
 
             if (!id) {
@@ -111,13 +100,9 @@ export class ThreadsController {
         }
     }
 
-    /**
-     * POST /api/threads/:id/lock
-     * Lock thread (admin/moderator only)
-     */
     public async lock(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            const userRole: UserRole = 'admin' // TODO: Get from authenticated user
+            const userRole = (request.user!.role ?? 'user') as UserRole
             const { id } = request.params
 
             if (!id) {
@@ -135,13 +120,9 @@ export class ThreadsController {
         }
     }
 
-    /**
-     * POST /api/threads/:id/unlock
-     * Unlock thread (admin/moderator only)
-     */
     public async unlock(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            const userRole: UserRole = 'admin' // TODO: Get from authenticated user
+            const userRole = (request.user!.role ?? 'user') as UserRole
             const { id } = request.params
 
             if (!id) {
@@ -159,10 +140,7 @@ export class ThreadsController {
         }
     }
 
-    /**
-     * GET /api/threads
-     * List threads with pagination, sorting, and filtering
-     */
+
     public async list(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const params = ThreadListRequestSchema.parse(req.query)

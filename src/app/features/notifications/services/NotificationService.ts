@@ -13,18 +13,13 @@ import { notifications } from '@/config/schema'
 export class NotificationService {
     constructor(private readonly database: ForumDatabase) { }
 
-    /**
-     * Send a type-safe notification
-     *
-     * Learning: Generic constraint T extends NotificationType ensures
-     * that the payload matches the type!
-     */
+
     async send<T extends NotificationType>(
         userId: string,
         type: T,
         payload: Omit<PayloadByType<T>, 'type'>,
     ): Promise<Notification> {
-        // Reconstruct full payload with type
+
         const fullPayload = { type, ...payload } as unknown as NotificationPayload
 
         const id = uuidv7()
@@ -46,9 +41,7 @@ export class NotificationService {
         return notification as unknown as Notification
     }
 
-    /**
-     * Get user notifications
-     */
+
     async getUserNotifications(userId: string): Promise<Notification[]> {
         const results = await this.database
             .select()
@@ -59,9 +52,7 @@ export class NotificationService {
         return results as unknown as Notification[]
     }
 
-    /**
-     * Mark notification as read
-     */
+
     async markAsRead(notificationId: string, userId: string): Promise<void> {
         await this.database
             .update(notifications)
@@ -69,9 +60,7 @@ export class NotificationService {
             .where(eq(notifications.id, notificationId))
     }
 
-    /**
-     * Format notification message using exhaustiveness checking
-     */
+
     formatMessage(notification: NotificationPayload): string {
         switch (notification.type) {
             case 'reply':
@@ -81,7 +70,7 @@ export class NotificationService {
             case 'system':
                 return `System Alert: ${notification.message}`
             default:
-                // Exhaustiveness check: TypeScript will error if we forget a case!
+
                 const _exhaustive: never = notification
                 return 'Unknown notification'
         }

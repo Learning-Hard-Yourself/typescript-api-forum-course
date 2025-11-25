@@ -32,14 +32,12 @@ export class LoginUser {
     }
 
     async execute(req: Request, res: Response, data: LoginUserData): Promise<LoginUserResult> {
-        // Call better-auth handler
+
         const webRequest = toWebRequest(req, '/api/auth/sign-in/email')
         const betterAuthResponse = await this.auth.handler(webRequest)
 
-        // Apply cookies
         applyCookies(betterAuthResponse, res)
 
-        // Parse response
         const rawBody = await betterAuthResponse.text()
         const body = rawBody ? JSON.parse(rawBody) : null
 
@@ -47,7 +45,6 @@ export class LoginUser {
             throw new Error('Invalid credentials')
         }
 
-        // Fetch and format the complete user
         const safeUser = await this.userFetcher.fetchAndFormatUser(body.user, data.email)
 
         return { user: safeUser }

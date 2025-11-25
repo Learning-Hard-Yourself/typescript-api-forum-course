@@ -1,11 +1,11 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import { NotFoundError } from '@/app/shared/errors/NotFoundError'
-import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { ProfileUpdateRequest } from '@/app/features/profiles/requests/ProfileUpdateRequest'
 import type { ProfileResource } from '@/app/features/profiles/resources/ProfileResource'
-import type { Logger } from '@/app/shared/logging/Logger'
 import type { ProfileService } from '@/app/features/profiles/services/ProfileService'
+import { NotFoundError } from '@/app/shared/errors/NotFoundError'
+import { ValidationError } from '@/app/shared/errors/ValidationError'
+import type { Logger } from '@/app/shared/logging/Logger'
 
 export class ProfilesController {
     public constructor(
@@ -40,7 +40,6 @@ export class ProfilesController {
             if (!userId) {
                 throw new Error('User ID is required')
             }
-            // TODO: Ensure authenticated user matches userId or is admin
             const attributes = this.updateRequest.validate(request.body)
             const profile = await this.profileService.update(userId, attributes)
             const data = this.profileResource.toResponse(profile)

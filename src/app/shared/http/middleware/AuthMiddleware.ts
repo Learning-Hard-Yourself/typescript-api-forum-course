@@ -2,7 +2,6 @@ import { getAuth } from '@/config/auth'
 import { fromNodeHeaders } from 'better-auth/node'
 import type { NextFunction, Request, Response } from 'express'
 
-// Extend Express Request
 declare global {
     namespace Express {
         interface Request {

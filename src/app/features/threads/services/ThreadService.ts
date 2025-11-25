@@ -25,9 +25,8 @@ export class ThreadService {
         const postId = uuidv7()
         const timestamp = new Date().toISOString()
 
-        // Transaction to ensure thread and initial post are created together
         this.database.transaction((tx: any) => {
-            // 1. Create Thread (initially with null lastPostId to avoid FK violation)
+
             tx.insert(threads).values({
                 id: threadId,
                 categoryId: attributes.categoryId,
@@ -38,12 +37,11 @@ export class ThreadService {
                 isLocked: false,
                 viewCount: 0,
                 replyCount: 0,
-                lastPostId: null, // Set to null initially
+                lastPostId: null,
                 createdAt: timestamp,
                 updatedAt: timestamp,
             }).run()
 
-            // 2. Create Initial Post
             tx.insert(posts).values({
                 id: postId,
                 threadId,
@@ -57,7 +55,6 @@ export class ThreadService {
                 updatedAt: timestamp,
             }).run()
 
-            // 3. Update Thread with lastPostId
             tx.update(threads).set({ lastPostId: postId }).where(eq(threads.id, threadId)).run()
         })
 
@@ -74,29 +71,14 @@ export class ThreadService {
         return record as Thread
     }
 
-    /**
-   * Update thread with role-based permissions
-   *
-   * Demonstrates:
-   * - Type Guards for permission checking
-   * - Utility Types in practice
-   * - Runtime validation with TypeScript
-   *
-   * @param threadId - ID of thread to update
-   * @param userId - ID of user making the update
-   * @param userRole - Role of user (user, moderator, admin)
-   * @param updateData - Fields to update
-   * @returns Updated thread
-   * @throws NotFoundError if thread doesn't exist
-   * @throws ForbiddenError if user lacks permissions
-   */
+
     public async updateThread(
         threadId: string,
         userId: string,
         userRole: UserRole,
         updateData: ThreadUpdatePayload,
     ): Promise<Thread> {
-        // Find thread
+
         const thread = await this.database.query.threads.findFirst({
             where: eq(threads.id, threadId),
         })
@@ -105,14 +87,11 @@ export class ThreadService {
             throw new NotFoundError(`Thread with ID ${threadId} not found`)
         }
 
-        // Check permissions
         const isAuthor = thread.authorId === userId
         assertCanUpdate(userRole, updateData, isAuthor)
 
-        // Filter updates based on role
         const allowedUpdate = filterUpdateByRole(userRole, updateData)
 
-        // Perform update
         const [updatedThread] = await this.database
             .update(threads)
             .set({
@@ -129,70 +108,35 @@ export class ThreadService {
         return updatedThread as Thread
     }
 
-    /**
-     * Pin a thread (admin/moderator only)
-     *
-     * @param threadId - ID of thread to pin
-     * @param userRole - Role of user making the request
-     * @returns Updated thread
-     * @throws ForbiddenError if user is not admin/moderator
-     */
+
     public async pinThread(threadId: string, userRole: UserRole): Promise<Thread> {
         assertIsAdminOrModerator(userRole)
 
         return this.updateThreadStatus(threadId, { isPinned: true })
     }
 
-    /**
-     * Unpin a thread (admin/moderator only)
-     *
-     * @param threadId - ID of thread to unpin
-     * @param userRole - Role of user making the request
-     * @returns Updated thread
-     * @throws ForbiddenError if user is not admin/moderator
-     */
+
     public async unpinThread(threadId: string, userRole: UserRole): Promise<Thread> {
         assertIsAdminOrModerator(userRole)
 
         return this.updateThreadStatus(threadId, { isPinned: false })
     }
 
-    /**
-     * Lock a thread to prevent new replies (admin/moderator only)
-     *
-     * @param threadId - ID of thread to lock
-     * @param userRole - Role of user making the request
-     * @returns Updated thread
-     * @throws ForbiddenError if user is not admin/moderator
-     */
+
     public async lockThread(threadId: string, userRole: UserRole): Promise<Thread> {
         assertIsAdminOrModerator(userRole)
 
         return this.updateThreadStatus(threadId, { isLocked: true })
     }
 
-    /**
-     * Unlock a thread (admin/moderator only)
-     *
-     * @param threadId - ID of thread to unlock
-     * @param userRole - Role of user making the request
-     * @returns Updated thread
-     * @throws ForbiddenError if user is not admin/moderator
-     */
+
     public async unlockThread(threadId: string, userRole: UserRole): Promise<Thread> {
         assertIsAdminOrModerator(userRole)
 
         return this.updateThreadStatus(threadId, { isLocked: false })
     }
 
-    /**
-     * Internal method to update thread status fields
-     *
-     * @param threadId - ID of thread to update
-     * @param update - Status fields to update
-     * @returns Updated thread
-     * @throws NotFoundError if thread doesn't exist
-     */
+
     private async updateThreadStatus(
         threadId: string,
         update: Partial<Pick<Thread, 'isPinned' | 'isLocked'>>,
@@ -221,12 +165,7 @@ export class ThreadService {
         return updatedThread as Thread
     }
 
-    /**
-     * Check if thread is locked
-     *
-     * @param threadId - ID of thread to check
-     * @returns true if thread is locked
-     */
+
     public async isThreadLocked(threadId: string): Promise<boolean> {
         const thread = await this.database.query.threads.findFirst({
             where: eq(threads.id, threadId),
@@ -235,17 +174,7 @@ export class ThreadService {
         return thread?.isLocked ?? false
     }
 
-    /**
-     * List threads with pagination, sorting, and filtering
-     *
-     * Demonstrates:
-     * - Generic types in action (PaginatedResponse<Thread>)
-     * - Complex query building with type safety
-     * - Type narrowing for sort options
-     *
-     * @param params - Listing parameters (page, perPage, sort, filters)
-     * @returns Paginated thread response
-     */
+
     public async list(params: ThreadListParams): Promise<PaginatedResponse<Thread>> {
         const {
             page = 1,
@@ -258,7 +187,6 @@ export class ThreadService {
             search,
         } = params
 
-        // Build WHERE conditions
         const conditions = []
         if (categoryId) {
             conditions.push(eq(threads.categoryId, categoryId))
@@ -273,10 +201,8 @@ export class ThreadService {
             conditions.push(like(threads.title, `%${search}%`))
         }
 
-        // Apply filters to query
         const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
-        // Get total count
         const countQuery = this.database
             .select({ count: count() })
             .from(threads)
@@ -288,22 +214,18 @@ export class ThreadService {
         const totalResult = await countQuery
         const total = totalResult[0]?.count ?? 0
 
-        // Build main query
         let query = this.database.select().from(threads)
 
         if (whereClause) {
             query = query.where(whereClause)
         }
 
-        // Apply sorting - demonstrates type narrowing!
         const orderColumn = this.getSortColumn(sortBy)
         query = sortOrder === 'asc' ? query.orderBy(asc(orderColumn)) : query.orderBy(desc(orderColumn))
 
-        // Apply pagination
         const offset = (page - 1) * perPage
         const results = await query.limit(perPage).offset(offset)
 
-        // Build paginated response
         const { meta, links } = calculatePaginationMeta(page, perPage, total, '/api/threads')
 
         return {
@@ -313,16 +235,7 @@ export class ThreadService {
         }
     }
 
-    /**
-     * Get sort column based on sort option
-     *
-     * Demonstrates: TypeScript's exhaustiveness checking with switch
-     * If we add a new ThreadSortBy option and forget to handle it,
-     * TypeScript will error!
-     *
-     * @param sortBy - Sort option
-     * @returns Database column for sorting
-     */
+
     private getSortColumn(sortBy: ThreadSortBy) {
         switch (sortBy) {
             case 'newest':
@@ -331,8 +244,7 @@ export class ThreadService {
                 return threads.viewCount
             case 'most_active':
                 return threads.updatedAt
-            // If we add a new sort option and forget this case,
-            // TypeScript will error because the switch isn't exhaustive!
+
         }
     }
 

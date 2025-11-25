@@ -50,16 +50,13 @@ export class CategoryService {
             .from(categories)
             .orderBy(asc(categories.order))
 
-        // Build tree structure
         const categoryMap = new Map<string, Category & { children: Category[] }>()
         const roots: (Category & { children: Category[] })[] = []
 
-        // First pass: create map entries
         for (const cat of allCategories) {
             categoryMap.set(cat.id, { ...(cat as Category), children: [] })
         }
 
-        // Second pass: link children to parents
         for (const cat of allCategories) {
             const node = categoryMap.get(cat.id)!
             if (cat.parentId && categoryMap.has(cat.parentId)) {

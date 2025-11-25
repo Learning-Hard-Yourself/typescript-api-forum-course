@@ -5,8 +5,8 @@ import { ValidationError } from '@/app/shared/errors/ValidationError'
 export const threadCreationSchema = z.object({
     categoryId: z.string().uuid(),
     title: z.string().min(3).max(255),
-    content: z.string().min(10), // Initial post content
-    slug: z.string().min(3).max(255).regex(/^[a-z0-9-]+$/).optional(), // Optional, can be generated
+    content: z.string().min(10),
+    slug: z.string().min(3).max(255).regex(/^[a-z0-9-]+$/).optional(),
 })
 
 export type ThreadCreationAttributes = z.infer<typeof threadCreationSchema>

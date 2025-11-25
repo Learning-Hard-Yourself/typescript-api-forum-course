@@ -1,11 +1,11 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import { ConflictError } from '@/app/shared/errors/ConflictError'
-import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { CategoryCreationRequest } from '@/app/features/categories/requests/CategoryCreationRequest'
 import type { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
-import type { Logger } from '@/app/shared/logging/Logger'
 import type { CategoryService } from '@/app/features/categories/services/CategoryService'
+import { ConflictError } from '@/app/shared/errors/ConflictError'
+import { ValidationError } from '@/app/shared/errors/ValidationError'
+import type { Logger } from '@/app/shared/logging/Logger'
 
 export class CategoriesController {
     public constructor(
@@ -28,7 +28,6 @@ export class CategoriesController {
 
     public async store(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            // TODO: Ensure admin only
             const attributes = this.creationRequest.validate(request.body)
             const category = await this.categoryService.create(attributes)
             const data = this.categoryResource.toResponse(category)

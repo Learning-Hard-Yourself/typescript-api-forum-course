@@ -38,7 +38,6 @@ export class RegisterUser {
     async execute(req: Request, res: Response, data: RegisterUserData): Promise<RegisterUserResult> {
         const { username, email, password, displayName } = data
 
-        // Check for existing user
         const predicates = []
         if (username) {
             predicates.push(eq(users.username, username))
@@ -56,14 +55,11 @@ export class RegisterUser {
             }
         }
 
-        // Call better-auth handler
         const webRequest = toWebRequest(req, '/api/auth/sign-up/email')
         const betterAuthResponse = await this.auth.handler(webRequest)
 
-        // Apply cookies
         applyCookies(betterAuthResponse, res)
 
-        // Parse response
         const rawBody = await betterAuthResponse.text()
         const body = rawBody ? JSON.parse(rawBody) : null
 
@@ -71,7 +67,6 @@ export class RegisterUser {
             throw new Error('Failed to register user')
         }
 
-        // Fetch and format the complete user
         const safeUser = await this.userFetcher.fetchAndFormatUser(
             body.user,
             email,

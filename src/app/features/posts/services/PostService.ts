@@ -12,17 +12,12 @@ import type { Post } from '@/types'
 export class PostService {
     public constructor(private readonly database: ForumDatabase) { }
 
-    /**
-     * Create a new post in a thread (top-level post)
-     */
-    /**
-     * Create a new post in a thread (top-level post)
-     */
+
+
     public async createPost(authorId: string, attributes: PostCreationAttributes): Promise<Post> {
         const id = uuidv7()
         const timestamp = new Date().toISOString()
 
-        // Create post
         await this.database.insert(posts).values({
             id,
             threadId: attributes.threadId,
@@ -36,7 +31,6 @@ export class PostService {
             updatedAt: timestamp,
         })
 
-        // Update thread stats
         const thread = await this.database.query.threads.findFirst({
             where: eq(threads.id, attributes.threadId),
         })
@@ -61,13 +55,10 @@ export class PostService {
         return record as Post
     }
 
-    /**
-     * Create a reply to an existing post
-     * Demonstrates: Depth validation and hierarchical structures
-     */
+
     public async replyToPost(authorId: string, parentPostId: string, attributes: { content: string }): Promise<Post> {
         const { content } = attributes
-        // Verify parent post exists
+
         const parentPost = await this.database.query.posts.findFirst({
             where: eq(posts.id, parentPostId),
         })
@@ -76,7 +67,6 @@ export class PostService {
             throw new NotFoundError(`Post with ID ${parentPostId} not found`)
         }
 
-        // Check depth limit by counting ancestors
         const depth = await this.getPostDepth(parentPostId)
         if (depth >= MAX_DEPTH) {
             throw new Error(`Maximum reply depth (${MAX_DEPTH}) reached`)
@@ -85,7 +75,6 @@ export class PostService {
         const id = uuidv7()
         const timestamp = new Date().toISOString()
 
-        // Create reply
         await this.database.insert(posts).values({
             id,
             threadId: parentPost.threadId,
@@ -99,7 +88,6 @@ export class PostService {
             updatedAt: timestamp,
         })
 
-        // Update thread's reply count and last post
         const thread = await this.database.query.threads.findFirst({
             where: eq(threads.id, parentPost.threadId),
         })
@@ -124,12 +112,9 @@ export class PostService {
         return record as Post
     }
 
-    /**
-     * Get all posts in a thread with nested structure
-     * Demonstrates: Tree building from flat data
-     */
+
     public async getThreadPosts(threadId: string): Promise<PostWithReplies[]> {
-        // Verify thread exists
+
         const thread = await this.database.query.threads.findFirst({
             where: eq(threads.id, threadId),
         })
@@ -138,20 +123,16 @@ export class PostService {
             throw new NotFoundError(`Thread with ID ${threadId} not found`)
         }
 
-        // Get all posts in the thread
         const allPosts = await this.database.query.posts.findMany({
             where: eq(posts.threadId, threadId),
             orderBy: (posts, { asc }) => [asc(posts.createdAt)],
         })
 
-        // Build tree structure
         const postsAsPost: Post[] = allPosts as Post[]
         return buildPostTree(postsAsPost)
     }
 
-    /**
-     * Calculate depth of a post by counting ancestors
-     */
+
     private async getPostDepth(postId: string): Promise<number> {
         let depth = 0
         let currentPostId: string | null = postId

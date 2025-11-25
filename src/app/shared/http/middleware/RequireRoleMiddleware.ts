@@ -1,10 +1,5 @@
 import type { NextFunction, Request, Response } from 'express'
 
-/**
- * Require Role Middleware
- * 
- * Verifies that the authenticated user has the required role
- */
 export function requireRole(role: string) {
     return (req: Request, res: Response, next: NextFunction): void => {
         if (!req.user) {
@@ -25,11 +20,6 @@ export function requireRole(role: string) {
     }
 }
 
-/**
- * Require Any Role Middleware
- * 
- * Verifies that the authenticated user has at least one of the required roles
- */
 export function requireAnyRole(...roles: string[]) {
     return (req: Request, res: Response, next: NextFunction): void => {
         if (!req.user) {
@@ -37,7 +27,6 @@ export function requireAnyRole(...roles: string[]) {
             return
         }
 
-        // Admin always has access
         if (req.user.role === 'admin') {
             next()
             return

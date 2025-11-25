@@ -36,15 +36,10 @@ export class PostsController {
         }
     }
 
-    /**
-     * Create a reply to an existing post
-     * POST /api/posts/:postId/reply
-     */
     public async reply(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const userId = request.user!.id
             const parentId = request.params.id
-            // TODO: Get authenticated user ID
 
             if (!parentId) {
                 response.status(400).json({ message: 'Parent post ID is required' })
@@ -67,10 +62,6 @@ export class PostsController {
         }
     }
 
-    /**
-     * Get thread posts with nested structure
-     * GET /api/threads/:threadId/posts
-     */
     public async getThreadPosts(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const threadId = request.params.threadId as string
@@ -92,9 +83,7 @@ export class PostsController {
         }
     }
 
-    /**
-     * PATCH /api/posts/:id - Edit post
-     */
+
     public async edit(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const userId = request.user!.id
@@ -109,9 +98,7 @@ export class PostsController {
         }
     }
 
-    /**
-     * DELETE /api/posts/:id - Soft delete post
-     */
+
     public async delete(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const userId = request.user!.id
@@ -127,9 +114,7 @@ export class PostsController {
         }
     }
 
-    /**
-     * POST /api/posts/:id/restore - Restore deleted post
-     */
+
     public async restore(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const userId = request.user!.id
@@ -144,9 +129,7 @@ export class PostsController {
         }
     }
 
-    /**
-     * GET /api/posts/:id/history - Get edit history
-     */
+
     public async history(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { id } = req.params

@@ -2,16 +2,8 @@ import { z } from 'zod'
 
 import { isValidVoteType, VOTE_TYPES } from '@/app/features/votes/models/Vote'
 
-/**
- * Vote Request Validation
- *
- * Demonstrates: Zod schema validation with custom refinements
- */
 export class VoteRequest {
-    /**
-     * Schema for casting a vote
-     * Uses custom refine() to validate vote type at runtime
-     */
+
     public readonly schema = z.object({
         voteType: z
             .string()

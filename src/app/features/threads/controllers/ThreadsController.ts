@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { UserRole } from '@/app/features/threads/models/ThreadUpdate'
 import type { ThreadCreationRequest } from '@/app/features/threads/requests/ThreadCreationRequest'
+import { ThreadListRequestSchema } from '@/app/features/threads/requests/ThreadListRequest'
 import { ThreadUpdateRequestSchema } from '@/app/features/threads/requests/ThreadUpdateRequest'
 import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
 import type { ThreadService } from '@/app/features/threads/services/ThreadService'
@@ -160,6 +161,28 @@ export class ThreadsController {
 
             this.logger?.info('Thread unlocked', { threadId: id })
             response.json({ data })
+        } catch (error) {
+            this.logger?.error(error as Error)
+            next(error)
+        }
+    }
+
+    /**
+     * GET /api/threads
+     * List threads with pagination, sorting, and filtering
+     */
+    public async list(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const params = ThreadListRequestSchema.parse(req.query)
+
+            const result = await this.threadService.list(params)
+
+            this.logger?.info('Threads listed', {
+                page: params.page,
+                perPage: params.perPage,
+                total: result.meta.total,
+            })
+            res.json(result)
         } catch (error) {
             this.logger?.error(error as Error)
             next(error)

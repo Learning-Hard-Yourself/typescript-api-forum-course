@@ -1,6 +1,7 @@
-import { eq } from 'drizzle-orm'
+import { and, asc, count, desc, eq, like } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 
+import type { ThreadListParams, ThreadSortBy } from '@/app/features/threads/models/ThreadListing'
 import {
     type ThreadUpdatePayload,
     type UserRole,
@@ -10,6 +11,8 @@ import {
 } from '@/app/features/threads/models/ThreadUpdate'
 import type { ThreadCreationAttributes } from '@/app/features/threads/requests/ThreadCreationRequest'
 import { NotFoundError } from '@/app/shared/errors'
+import type { PaginatedResponse } from '@/app/shared/types/Pagination'
+import { calculatePaginationMeta } from '@/app/shared/types/Pagination'
 import type { ForumDatabase } from '@/config/database-types'
 import { posts, threads } from '@/config/schema'
 import type { Thread } from '@/types'
@@ -230,6 +233,107 @@ export class ThreadService {
         })
 
         return thread?.isLocked ?? false
+    }
+
+    /**
+     * List threads with pagination, sorting, and filtering
+     *
+     * Demonstrates:
+     * - Generic types in action (PaginatedResponse<Thread>)
+     * - Complex query building with type safety
+     * - Type narrowing for sort options
+     *
+     * @param params - Listing parameters (page, perPage, sort, filters)
+     * @returns Paginated thread response
+     */
+    public async list(params: ThreadListParams): Promise<PaginatedResponse<Thread>> {
+        const {
+            page = 1,
+            perPage = 20,
+            sortBy = 'newest',
+            sortOrder = 'desc',
+            categoryId,
+            authorId,
+            isPinned,
+            search,
+        } = params
+
+        // Build WHERE conditions
+        const conditions = []
+        if (categoryId) {
+            conditions.push(eq(threads.categoryId, categoryId))
+        }
+        if (authorId) {
+            conditions.push(eq(threads.authorId, authorId))
+        }
+        if (isPinned !== undefined) {
+            conditions.push(eq(threads.isPinned, isPinned))
+        }
+        if (search) {
+            conditions.push(like(threads.title, `%${search}%`))
+        }
+
+        // Apply filters to query
+        const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+        // Get total count
+        const countQuery = this.database
+            .select({ count: count() })
+            .from(threads)
+
+        if (whereClause) {
+            countQuery.where(whereClause)
+        }
+
+        const totalResult = await countQuery
+        const total = totalResult[0]?.count ?? 0
+
+        // Build main query
+        let query = this.database.select().from(threads)
+
+        if (whereClause) {
+            query = query.where(whereClause)
+        }
+
+        // Apply sorting - demonstrates type narrowing!
+        const orderColumn = this.getSortColumn(sortBy)
+        query = sortOrder === 'asc' ? query.orderBy(asc(orderColumn)) : query.orderBy(desc(orderColumn))
+
+        // Apply pagination
+        const offset = (page - 1) * perPage
+        const results = await query.limit(perPage).offset(offset)
+
+        // Build paginated response
+        const { meta, links } = calculatePaginationMeta(page, perPage, total, '/api/threads')
+
+        return {
+            data: results as Thread[],
+            links,
+            meta,
+        }
+    }
+
+    /**
+     * Get sort column based on sort option
+     *
+     * Demonstrates: TypeScript's exhaustiveness checking with switch
+     * If we add a new ThreadSortBy option and forget to handle it,
+     * TypeScript will error!
+     *
+     * @param sortBy - Sort option
+     * @returns Database column for sorting
+     */
+    private getSortColumn(sortBy: ThreadSortBy) {
+        switch (sortBy) {
+            case 'newest':
+                return threads.createdAt
+            case 'popular':
+                return threads.viewCount
+            case 'most_active':
+                return threads.updatedAt
+            // If we add a new sort option and forget this case,
+            // TypeScript will error because the switch isn't exhaustive!
+        }
     }
 
     private generateSlug(title: string): string {

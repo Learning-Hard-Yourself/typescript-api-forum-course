@@ -4,6 +4,7 @@ import { AttachmentRoutes } from '@/routes/attachments'
 import { AuthRoutes } from '@/routes/auth'
 import { CategoryRoutes } from '@/routes/categories'
 import { HealthRoutes } from '@/routes/health'
+import { NotificationRoutes } from '@/routes/notifications'
 import { PostRoutes } from '@/routes/posts'
 import { ProfileRoutes } from '@/routes/profiles'
 import { ThreadRoutes } from '@/routes/threads'
@@ -21,4 +22,5 @@ export const registerRoutes = (server: Express, dependencies: ApplicationDepende
   new PostRoutes(dependencies).map(server)
   new AttachmentRoutes(dependencies).map(server)
   new VoteRoutes(dependencies).map(server)
+  new NotificationRoutes(dependencies).map(server)
 }

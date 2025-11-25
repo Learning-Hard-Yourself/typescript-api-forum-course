@@ -177,4 +177,15 @@ export const postEdits = sqliteTable('post_edits', {
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 
-export const schema = { users, accounts, sessions, verifications, profiles, categories, threads, posts, attachments, votes, postEdits }
+export const notifications = sqliteTable('notifications', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(), // 'reply' | 'vote' | 'system'
+  data: text('data', { mode: 'json' }).notNull(), // JSON payload
+  readAt: text('read_at'),
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+})
+
+export const schema = { users, accounts, sessions, verifications, profiles, categories, threads, posts, attachments, votes, postEdits, notifications }

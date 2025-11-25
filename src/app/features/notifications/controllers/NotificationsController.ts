@@ -1,0 +1,58 @@
+import type { NextFunction, Request, Response } from 'express'
+
+import type { NotificationService } from '@/app/features/notifications/services/NotificationService'
+import { NotificationService as Service } from '@/app/features/notifications/services/NotificationService'
+import type { Logger } from '@/app/shared/logging/Logger'
+import type { ForumDatabase } from '@/config/database-types'
+
+export class NotificationsController {
+    private readonly notificationService: NotificationService
+
+    constructor(
+        database: ForumDatabase,
+        private readonly logger?: Logger,
+    ) {
+        this.notificationService = new Service(database)
+    }
+
+    /**
+     * GET /api/notifications
+     */
+    public async list(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const userId = 'usr_1' // TODO: from auth
+
+            const notifications = await this.notificationService.getUserNotifications(userId)
+
+            // Format messages for display
+            const data = notifications.map((n) => ({
+                ...n,
+                formattedMessage: this.notificationService.formatMessage(n.data),
+            }))
+
+            this.logger?.info('Notifications retrieved', { userId, count: notifications.length })
+            res.json({ data })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    /**
+     * POST /api/notifications/:id/read
+     */
+    public async markAsRead(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { id } = req.params
+            const userId = 'usr_1' // TODO: from auth
+
+            if (!id) throw new Error('Notification ID required')
+
+            await this.notificationService.markAsRead(id, userId)
+
+            this.logger?.info('Notification marked as read', { notificationId: id })
+            res.status(204).send()
+        } catch (error) {
+            next(error)
+        }
+    }
+}

@@ -141,4 +141,24 @@ export const attachments = sqliteTable('attachments', {
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 
-export const schema = { users, accounts, sessions, verifications, profiles, categories, threads, posts, attachments }
+export const votes = sqliteTable(
+  'votes',
+  {
+    id: text('id').primaryKey(),
+    postId: text('post_id')
+      .notNull()
+      .references(() => posts.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    voteType: text('vote_type').notNull(), // 'upvote' | 'downvote'
+    createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    // Ensure one vote per user per post
+    uniqueVote: uniqueIndex('votes_post_user_idx').on(table.postId, table.userId),
+  }),
+)
+
+export const schema = { users, accounts, sessions, verifications, profiles, categories, threads, posts, attachments, votes }

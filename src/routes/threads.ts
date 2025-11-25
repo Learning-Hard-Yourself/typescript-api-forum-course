@@ -21,5 +21,10 @@ export class ThreadRoutes {
 
     public map(server: Express): void {
         server.post('/api/threads', (request, response, next) => this.controller.store(request, response, next))
+        server.patch('/api/threads/:id', (request, response, next) => this.controller.update(request, response, next))
+        server.post('/api/threads/:id/pin', (request, response, next) => this.controller.pin(request, response, next))
+        server.post('/api/threads/:id/unpin', (request, response, next) => this.controller.unpin(request, response, next))
+        server.post('/api/threads/:id/lock', (request, response, next) => this.controller.lock(request, response, next))
+        server.post('/api/threads/:id/unlock', (request, response, next) => this.controller.unlock(request, response, next))
     }
 }

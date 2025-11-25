@@ -1,10 +1,10 @@
 import type { Express } from 'express'
 
 import { Application } from '@/bootstrap/Application'
-import { createDatabase } from '@/config/database'
-import { runMigrations } from '@/config/migrator'
 import { resetAuth } from '@/config/auth'
-import type { ForumDatabase } from '@/database/types'
+import { createDatabase } from '@/config/database'
+import type { ForumDatabase } from '@/config/database-types'
+import { runMigrations } from '@/config/migrator'
 
 export interface TestApplicationContext {
   app: Express

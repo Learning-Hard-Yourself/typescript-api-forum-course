@@ -1,10 +1,12 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import { ValidationError } from '@/app/shared/errors/ValidationError'
+import type { UserRole } from '@/app/features/threads/models/ThreadUpdate'
 import type { ThreadCreationRequest } from '@/app/features/threads/requests/ThreadCreationRequest'
+import { ThreadUpdateRequestSchema } from '@/app/features/threads/requests/ThreadUpdateRequest'
 import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
-import type { Logger } from '@/app/shared/logging/Logger'
 import type { ThreadService } from '@/app/features/threads/services/ThreadService'
+import { ValidationError } from '@/app/shared/errors/ValidationError'
+import type { Logger } from '@/app/shared/logging/Logger'
 
 export class ThreadsController {
     public constructor(
@@ -36,6 +38,130 @@ export class ThreadsController {
             } else {
                 this.logger?.error(error as Error)
             }
+            next(error)
+        }
+    }
+
+    /**
+     * PATCH /api/threads/:id
+     * Update thread (title by author, all by admin/mod)
+     */
+    public async update(request: Request, response: Response, next: NextFunction): Promise<void> {
+        try {
+            // TODO: Get user from auth middleware
+            const userId = 'usr_1'
+            const userRole: UserRole = 'user' // TODO: Get from authenticated user
+            const { id } = request.params
+
+            if (!id) {
+                throw new Error('Thread ID is required')
+            }
+
+            const validatedData = ThreadUpdateRequestSchema.parse(request.body)
+
+            const thread = await this.threadService.updateThread(id, userId, userRole, validatedData)
+            const data = this.threadResource.toResponse(thread)
+
+            this.logger?.info('Thread updated', { threadId: id })
+            response.json({ data })
+        } catch (error) {
+            this.logger?.error(error as Error)
+            next(error)
+        }
+    }
+
+    /**
+     * POST /api/threads/:id/pin
+     * Pin thread (admin/moderator only)
+     */
+    public async pin(request: Request, response: Response, next: NextFunction): Promise<void> {
+        try {
+            const userRole: UserRole = 'admin' // TODO: Get from authenticated user
+            const { id } = request.params
+
+            if (!id) {
+                throw new Error('Thread ID is required')
+            }
+
+            const thread = await this.threadService.pinThread(id, userRole)
+            const data = this.threadResource.toResponse(thread)
+
+            this.logger?.info('Thread pinned', { threadId: id })
+            response.json({ data })
+        } catch (error) {
+            this.logger?.error(error as Error)
+            next(error)
+        }
+    }
+
+    /**
+     * POST /api/threads/:id/unpin
+     * Unpin thread (admin/moderator only)
+     */
+    public async unpin(request: Request, response: Response, next: NextFunction): Promise<void> {
+        try {
+            const userRole: UserRole = 'admin' // TODO: Get from authenticated user
+            const { id } = request.params
+
+            if (!id) {
+                throw new Error('Thread ID is required')
+            }
+
+            const thread = await this.threadService.unpinThread(id, userRole)
+            const data = this.threadResource.toResponse(thread)
+
+            this.logger?.info('Thread unpinned', { threadId: id })
+            response.json({ data })
+        } catch (error) {
+            this.logger?.error(error as Error)
+            next(error)
+        }
+    }
+
+    /**
+     * POST /api/threads/:id/lock
+     * Lock thread (admin/moderator only)
+     */
+    public async lock(request: Request, response: Response, next: NextFunction): Promise<void> {
+        try {
+            const userRole: UserRole = 'admin' // TODO: Get from authenticated user
+            const { id } = request.params
+
+            if (!id) {
+                throw new Error('Thread ID is required')
+            }
+
+            const thread = await this.threadService.lockThread(id, userRole)
+            const data = this.threadResource.toResponse(thread)
+
+            this.logger?.info('Thread locked', { threadId: id })
+            response.json({ data })
+        } catch (error) {
+            this.logger?.error(error as Error)
+            next(error)
+        }
+    }
+
+    /**
+     * POST /api/threads/:id/unlock
+     * Unlock thread (admin/moderator only)
+     */
+    public async unlock(request: Request, response: Response, next: NextFunction): Promise<void> {
+        try {
+            const userRole: UserRole = 'admin' // TODO: Get from authenticated user
+            const { id } = request.params
+
+            if (!id) {
+                throw new Error('Thread ID is required')
+            }
+
+            const thread = await this.threadService.unlockThread(id, userRole)
+            const data = this.threadResource.toResponse(thread)
+
+            this.logger?.info('Thread unlocked', { threadId: id })
+            response.json({ data })
+        } catch (error) {
+            this.logger?.error(error as Error)
             next(error)
         }
     }

@@ -9,6 +9,7 @@ import { ProfileRoutes } from '@/routes/profiles'
 import { ThreadRoutes } from '@/routes/threads'
 import type { ApplicationDependencies } from '@/routes/types'
 import { UserRoutes } from '@/routes/users'
+import { VoteRoutes } from '@/routes/votes'
 
 export const registerRoutes = (server: Express, dependencies: ApplicationDependencies): void => {
   new HealthRoutes().map(server)
@@ -19,4 +20,5 @@ export const registerRoutes = (server: Express, dependencies: ApplicationDepende
   new ThreadRoutes(dependencies).map(server)
   new PostRoutes(dependencies).map(server)
   new AttachmentRoutes(dependencies).map(server)
+  new VoteRoutes(dependencies).map(server)
 }

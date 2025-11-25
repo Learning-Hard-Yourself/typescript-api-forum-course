@@ -32,7 +32,7 @@ describe('Authentication routes', () => {
     const { app, database } = await createTestApplication()
 
     const response = await request(app)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({
         username: 'sarah_dev',
         email: 'sarah@example.com',
@@ -61,7 +61,7 @@ describe('Authentication routes', () => {
     await createExistingUser(database)
 
     const response = await request(app)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({
         username: 'existing_user',
         email: 'existing@example.com',
@@ -76,14 +76,14 @@ describe('Authentication routes', () => {
   it('allows a registered user to sign in and issues session cookie', async () => {
     const { app } = await createTestApplication()
 
-    await request(app).post('/api/auth/register').send({
+    await request(app).post('/api/v1/auth/register').send({
       username: 'sarah_dev',
       email: 'sarah@example.com',
       password: 'SecurePass123!',
       displayName: 'Sarah Johnson',
     })
 
-    const response = await request(app).post('/api/auth/login').send({
+    const response = await request(app).post('/api/v1/auth/login').send({
       email: 'sarah@example.com',
       password: 'SecurePass123!',
     })
@@ -96,14 +96,14 @@ describe('Authentication routes', () => {
   it('rejects sign in with invalid credentials', async () => {
     const { app } = await createTestApplication()
 
-    await request(app).post('/api/auth/register').send({
+    await request(app).post('/api/v1/auth/register').send({
       username: 'sarah_dev',
       email: 'sarah@example.com',
       password: 'SecurePass123!',
       displayName: 'Sarah Johnson',
     })
 
-    const response = await request(app).post('/api/auth/login').send({
+    const response = await request(app).post('/api/v1/auth/login').send({
       email: 'sarah@example.com',
       password: 'WrongPassword!',
     })
@@ -115,7 +115,7 @@ describe('Authentication routes', () => {
   it('returns the authenticated user when session cookie is present', async () => {
     const { app } = await createTestApplication()
 
-    const registerResponse = await request(app).post('/api/auth/register').send({
+    const registerResponse = await request(app).post('/api/v1/auth/register').send({
       username: 'sarah_dev',
       email: 'sarah@example.com',
       password: 'SecurePass123!',
@@ -124,7 +124,7 @@ describe('Authentication routes', () => {
 
     const cookies = registerResponse.get('set-cookie')
 
-    const sessionResponse = await request(app).get('/api/auth/me').set('Cookie', cookies)
+    const sessionResponse = await request(app).get('/api/v1/auth/me').set('Cookie', cookies)
 
     expect(sessionResponse.statusCode).toBe(200)
     expect(sessionResponse.body.data.user.email).toBe('sarah@example.com')
@@ -135,7 +135,7 @@ describe('Authentication routes', () => {
   it.skip('refreshes the session and returns a new cookie', async () => {
     const { app } = await createTestApplication()
 
-    const registerResponse = await request(app).post('/api/auth/register').send({
+    const registerResponse = await request(app).post('/api/v1/auth/register').send({
       username: 'sarah_dev',
       email: 'sarah@example.com',
       password: 'SecurePass123!',
@@ -144,7 +144,7 @@ describe('Authentication routes', () => {
 
     const cookies = registerResponse.get('set-cookie')
 
-    const refreshResponse = await request(app).post('/api/auth/refresh').set('Cookie', cookies)
+    const refreshResponse = await request(app).post('/api/v1/auth/refresh').set('Cookie', cookies)
 
     expect(refreshResponse.statusCode).toBe(200)
     expect(Array.isArray(refreshResponse.get('set-cookie'))).toBe(true)
@@ -153,7 +153,7 @@ describe('Authentication routes', () => {
   it('revokes the session on logout', async () => {
     const { app } = await createTestApplication()
 
-    const registerResponse = await request(app).post('/api/auth/register').send({
+    const registerResponse = await request(app).post('/api/v1/auth/register').send({
       username: 'sarah_dev',
       email: 'sarah@example.com',
       password: 'SecurePass123!',
@@ -162,12 +162,12 @@ describe('Authentication routes', () => {
 
     const cookies = registerResponse.get('set-cookie')
 
-    const logoutResponse = await request(app).post('/api/auth/logout').set('Cookie', cookies)
+    const logoutResponse = await request(app).post('/api/v1/auth/logout').set('Cookie', cookies)
 
     expect(logoutResponse.statusCode).toBe(204)
     expect(Array.isArray(logoutResponse.get('set-cookie'))).toBe(true)
 
-    const sessionResponse = await request(app).get('/api/auth/me').set('Cookie', logoutResponse.get('set-cookie'))
+    const sessionResponse = await request(app).get('/api/v1/auth/me').set('Cookie', logoutResponse.get('set-cookie'))
     expect(sessionResponse.statusCode).toBe(401)
   })
 })

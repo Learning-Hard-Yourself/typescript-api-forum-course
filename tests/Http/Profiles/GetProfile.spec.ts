@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { profiles, users } from '@/config/schema'
 import { createTestApplication } from '@tests/support/createTestApplication'
 
-describe('GET /api/profiles/:userId', () => {
+describe('GET /api/v1/profiles/:userId', () => {
     it('retrieves a user profile', async () => {
         const context = await createTestApplication()
 
@@ -30,7 +30,7 @@ describe('GET /api/profiles/:userId', () => {
             website: 'https://example.com',
         })
 
-        const response = await request(context.app).get(`/api/profiles/${userId}`).expect(200)
+        const response = await request(context.app).get(`/api/v1/profiles/${userId}`).expect(200)
 
         expect(response.body.data).toMatchObject({
             userId,
@@ -44,7 +44,7 @@ describe('GET /api/profiles/:userId', () => {
         const context = await createTestApplication()
         const nonExistentId = uuidv7()
 
-        const response = await request(context.app).get(`/api/profiles/${nonExistentId}`).expect(404)
+        const response = await request(context.app).get(`/api/v1/profiles/${nonExistentId}`).expect(404)
 
         expect(response.body.message).toBe('Profile not found')
     })

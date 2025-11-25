@@ -11,13 +11,10 @@ export const PostEditRequestSchema = z.object({
     reason: z.string().max(500).optional(),
 })
 
-export type PostEditRequest = z.infer<typeof PostEditRequestSchema>
+export type PostEditRequestPayload = z.infer<typeof PostEditRequestSchema>
 
-/**
- * Post Delete Request Validation
- */
-export const PostDeleteRequestSchema = z.object({
-    reason: z.string().max(500).optional(),
-})
-
-export type PostDeleteRequest = z.infer<typeof PostDeleteRequestSchema>
+export class PostEditRequest {
+    validate(body: unknown): PostEditRequestPayload {
+        return PostEditRequestSchema.parse(body)
+    }
+}

@@ -17,7 +17,7 @@ describe('POST /api/categories', () => {
         }
 
         const response = await request(context.app)
-            .post('/api/categories')
+            .post('/api/v1/categories')
             .send(payload)
             .expect(201)
 

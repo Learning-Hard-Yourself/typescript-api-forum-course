@@ -20,7 +20,7 @@ export class AttachmentRoutes {
     }
 
     public map(server: Express): void {
-        server.post('/api/attachments/sign', (request, response, next) => this.controller.sign(request, response, next))
-        server.post('/api/attachments', (request, response, next) => this.controller.store(request, response, next))
+        server.post('/api/v1/attachments/sign', (request, response, next) => this.controller.sign(request, response, next))
+        server.post('/api/v1/attachments', (request, response, next) => this.controller.store(request, response, next))
     }
 }

@@ -20,7 +20,7 @@ export class NotificationsController {
      */
     public async list(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const userId = 'usr_1' // TODO: from auth
+            const userId = req.user!.id
 
             const notifications = await this.notificationService.getUserNotifications(userId)
 
@@ -43,7 +43,7 @@ export class NotificationsController {
     public async markAsRead(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { id } = req.params
-            const userId = 'usr_1' // TODO: from auth
+            const userId = req.user!.id
 
             if (!id) throw new Error('Notification ID required')
 

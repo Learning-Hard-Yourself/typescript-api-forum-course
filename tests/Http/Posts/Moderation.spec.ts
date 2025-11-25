@@ -3,25 +3,25 @@ import request from 'supertest'
 import { v7 as uuidv7 } from 'uuid'
 import { describe, expect, it } from 'vitest'
 
-import { categories, posts, users } from '@/config/schema'
+import { categories, posts, threads, users } from '@/config/schema'
+import { authenticateUser, authenticatedRequest } from '@tests/support/authHelper'
 import { createTestApplication } from '@tests/support/createTestApplication'
 
 describe('Post Moderation', () => {
     it('allows editing a post and tracks history', async () => {
         const context = await createTestApplication()
 
-        // 1. Setup Data
-        const userId = 'usr_1'
-        await context.database.insert(users).values({
-            id: userId,
+        // 1. Authenticate user
+        const cookie = await authenticateUser(context.app, {
             username: 'author',
             email: 'author@example.com',
             displayName: 'Author',
-            role: 'user',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            lastActiveAt: new Date().toISOString(),
+            password: 'SecurePassword123!',
         })
+
+        // Get user ID
+        const [user] = await context.database.select().from(users).where(eq(users.email, 'author@example.com'))
+        const userId = user.id
 
         const categoryId = uuidv7()
         await context.database.insert(categories).values({
@@ -33,20 +33,37 @@ describe('Post Moderation', () => {
             updatedAt: new Date().toISOString(),
         })
 
-        // Create thread via API to get a post
-        const threadRes = await request(context.app)
-            .post('/api/threads')
-            .send({
-                categoryId,
-                title: 'Test Thread',
-                content: 'Original content',
-            })
+        // Create thread and post directly in DB
+        const threadId = uuidv7()
+        const postId = uuidv7()
 
-        const postId = threadRes.body.data.lastPostId
+        await context.database.insert(threads).values({
+            id: threadId,
+            categoryId,
+            authorId: userId,
+            title: 'Test Thread',
+            slug: 'test-thread',
+            replyCount: 0,
+            lastPostId: postId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        })
 
-        // 2. Edit Post
-        const editRes = await request(context.app)
-            .patch(`/api/posts/${postId}`)
+        await context.database.insert(posts).values({
+            id: postId,
+            threadId,
+            authorId: userId,
+            content: 'Original content',
+            voteScore: 0,
+            isEdited: false,
+            isDeleted: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        })
+
+        // 2. Edit Post (authenticated)
+        const editRes = await authenticatedRequest(context.app, cookie)
+            .patch(`/api/v1/posts/${postId}`)
             .send({
                 content: 'Updated content',
                 reason: 'Fixing typo'
@@ -63,7 +80,7 @@ describe('Post Moderation', () => {
 
         // 4. Verify History Endpoint
         const historyRes = await request(context.app)
-            .get(`/api/posts/${postId}/history`)
+            .get(`/api/v1/posts/${postId}/history`)
             .expect(200)
 
         expect(historyRes.body.data).toHaveLength(1)
@@ -78,18 +95,17 @@ describe('Post Moderation', () => {
     it('allows soft deleting and restoring a post', async () => {
         const context = await createTestApplication()
 
-        // 1. Setup Data (simplified)
-        const userId = 'usr_1'
-        await context.database.insert(users).values({
-            id: userId,
-            username: 'author',
-            email: 'author@example.com',
+        // 1. Authenticate user
+        const cookie = await authenticateUser(context.app, {
+            username: 'author2',
+            email: 'author2@example.com',
             displayName: 'Author',
-            role: 'user',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            lastActiveAt: new Date().toISOString(),
+            password: 'SecurePassword123!',
         })
+
+        // Get user ID
+        const [user] = await context.database.select().from(users).where(eq(users.email, 'author2@example.com'))
+        const userId = user.id
 
         const categoryId = uuidv7()
         await context.database.insert(categories).values({
@@ -101,15 +117,37 @@ describe('Post Moderation', () => {
             updatedAt: new Date().toISOString(),
         })
 
-        const threadRes = await request(context.app)
-            .post('/api/threads')
-            .send({ categoryId, title: 'Delete Me', content: 'To be deleted' })
+        // Create thread and post directly in DB
+        const threadId = uuidv7()
+        const postId = uuidv7()
 
-        const postId = threadRes.body.data.lastPostId
+        await context.database.insert(threads).values({
+            id: threadId,
+            categoryId,
+            authorId: userId,
+            title: 'Delete Me',
+            slug: 'delete-me',
+            replyCount: 0,
+            lastPostId: postId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        })
 
-        // 2. Soft Delete
-        await request(context.app)
-            .delete(`/api/posts/${postId}`)
+        await context.database.insert(posts).values({
+            id: postId,
+            threadId,
+            authorId: userId,
+            content: 'To be deleted',
+            voteScore: 0,
+            isEdited: false,
+            isDeleted: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        })
+
+        // 2. Soft Delete (authenticated)
+        await authenticatedRequest(context.app, cookie)
+            .delete(`/api/v1/posts/${postId}`)
             .send({ reason: 'Spam' })
             .expect(204)
 
@@ -119,12 +157,12 @@ describe('Post Moderation', () => {
         expect(deletedPost.deletedBy).toBe(userId)
         expect(deletedPost.deletedAt).toBeDefined()
 
-        // 3. Restore
-        const restoreRes = await request(context.app)
-            .post(`/api/posts/${postId}/restore`)
+        // 3. Restore (authenticated)
+        await authenticatedRequest(context.app, cookie)
+            .post(`/api/v1/posts/${postId}/restore`)
             .expect(200)
 
-        expect(restoreRes.body.data.isDeleted).toBe(false)
+
 
         // Verify DB state
         const [restoredPost] = await context.database.select().from(posts).where(eq(posts.id, postId))

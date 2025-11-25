@@ -6,7 +6,7 @@ describe('GET /api/health', () => {
   it('returns status ok', async () => {
     const { app } = await createTestApplication()
 
-    const response = await request(app).get('/api/health')
+    const response = await request(app).get('/api/v1/health')
 
     expect(response.statusCode).toBe(200)
     expect(response.body).toStrictEqual({ status: 'ok' })

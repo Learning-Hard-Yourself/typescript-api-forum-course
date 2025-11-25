@@ -19,19 +19,12 @@ export class ThreadsController {
 
     public async store(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            // TODO: Get authenticated user ID from request (middleware should populate this)
-            // For now, we might need to mock it or assume it's passed in body/headers for testing if auth isn't fully wired
-            // But based on existing code, `request.user` might be available if auth middleware runs.
-            // Let's assume a dummy user ID for now if not present, or fail.
-            // The requirement says "login usaremos better-auth", so auth should be there.
-            // I'll assume `request.headers['x-user-id']` for simple testing or `request.user.id` if typed.
-            // Let's use a hardcoded ID for now or throw if not found, to be safe.
-            const userId = 'usr_1' // Placeholder until auth middleware is confirmed
+            const userId = request.user!.id
 
             const attributes = this.creationRequest.validate(request.body)
             const thread = await this.threadService.create(userId, attributes)
             const data = this.threadResource.toResponse(thread)
-            this.logger?.info('Thread created', { threadId: thread.id })
+            this.logger?.info('Thread created', { threadId: thread.id, userId })
             response.status(201).json({ data })
         } catch (error) {
             if (error instanceof ValidationError) {
@@ -49,9 +42,8 @@ export class ThreadsController {
      */
     public async update(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            // TODO: Get user from auth middleware
-            const userId = 'usr_1'
-            const userRole: UserRole = 'user' // TODO: Get from authenticated user
+            const userId = request.user!.id
+            const userRole = (request.user!.role ?? 'user') as UserRole
             const { id } = request.params
 
             if (!id) {
@@ -63,8 +55,8 @@ export class ThreadsController {
             const thread = await this.threadService.updateThread(id, userId, userRole, validatedData)
             const data = this.threadResource.toResponse(thread)
 
-            this.logger?.info('Thread updated', { threadId: id })
-            response.json({ data })
+            this.logger?.info('Thread updated', { threadId: id, userId })
+            response.status(200).json({ data })
         } catch (error) {
             this.logger?.error(error as Error)
             next(error)

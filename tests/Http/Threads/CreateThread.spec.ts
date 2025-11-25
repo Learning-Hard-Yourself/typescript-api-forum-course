@@ -1,27 +1,26 @@
 import { eq } from 'drizzle-orm'
-import request from 'supertest'
 import { v7 as uuidv7 } from 'uuid'
 import { describe, expect, it } from 'vitest'
 
 import { categories, posts, threads, users } from '@/config/schema'
+import { authenticateUser, authenticatedRequest } from '@tests/support/authHelper'
 import { createTestApplication } from '@tests/support/createTestApplication'
 
 describe('POST /api/threads', () => {
     it('creates a new thread with initial post', async () => {
         const context = await createTestApplication()
 
-        // Create user
-        const userId = 'usr_1'
-        await context.database.insert(users).values({
-            id: userId,
+        // Authenticate user
+        const cookie = await authenticateUser(context.app, {
             username: 'testuser',
             email: 'test@example.com',
             displayName: 'Test User',
-            role: 'user',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            lastActiveAt: new Date().toISOString(),
+            password: 'SecurePassword123!',
         })
+
+        // Get user ID
+        const [user] = await context.database.select().from(users).where(eq(users.email, 'test@example.com'))
+        const userId = user.id
 
         // Create category
         const categoryId = uuidv7()
@@ -40,8 +39,8 @@ describe('POST /api/threads', () => {
             content: 'This is the first post content.',
         }
 
-        const response = await request(context.app)
-            .post('/api/threads')
+        const response = await authenticatedRequest(context.app, cookie)
+            .post('/api/v1/threads')
             .send(payload)
             .expect(201)
 

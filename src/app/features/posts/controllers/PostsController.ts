@@ -1,46 +1,37 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { PostCreationRequest } from '@/app/features/posts/requests/PostCreationRequest'
-import { PostDeleteRequestSchema, PostEditRequestSchema } from '@/app/features/posts/requests/PostEditRequest'
+import type { PostDeleteRequest } from '@/app/features/posts/requests/PostDeleteRequest'
+import type { PostEditRequest } from '@/app/features/posts/requests/PostEditRequest'
 import type { PostReplyRequest } from '@/app/features/posts/requests/PostReplyRequest'
 import { NestedPostResource } from '@/app/features/posts/resources/NestedPostResource'
 import type { PostResource } from '@/app/features/posts/resources/PostResource'
-import { PostModerationService } from '@/app/features/posts/services/PostModerationService'
+import type { PostModerationService } from '@/app/features/posts/services/PostModerationService'
 import type { PostService } from '@/app/features/posts/services/PostService'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { Logger } from '@/app/shared/logging/Logger'
-import type { ForumDatabase } from '@/config/database-types'
 
 export class PostsController {
-    private readonly moderationService: PostModerationService
-
     public constructor(
         private readonly creationRequest: PostCreationRequest,
         private readonly replyRequest: PostReplyRequest,
+        private readonly editRequest: PostEditRequest,
+        private readonly deleteRequest: PostDeleteRequest,
         private readonly postResource: PostResource,
         private readonly postService: PostService,
-        database: ForumDatabase,
+        private readonly moderationService: PostModerationService,
         private readonly logger?: Logger,
-    ) {
-        this.moderationService = new PostModerationService(database)
-    }
+    ) { }
 
     public async store(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            // TODO: Get authenticated user ID
-            const userId = 'usr_1' // Placeholder
-
-            const attributes = this.creationRequest.validate(request.body)
-            const post = await this.postService.create(userId, attributes)
+            const userId = request.user!.id
+            const payload = this.creationRequest.validate(request.body)
+            const post = await this.postService.createPost(userId, payload)
             const data = this.postResource.toResponse(post)
-            this.logger?.info('Post created', { postId: post.id })
+            this.logger?.info('Post created', { postId: post.id, userId })
             response.status(201).json({ data })
         } catch (error) {
-            if (error instanceof ValidationError) {
-                this.logger?.warn('Validation failed on post creation', { errors: error.details })
-            } else {
-                this.logger?.error(error as Error)
-            }
             next(error)
         }
     }
@@ -51,20 +42,20 @@ export class PostsController {
      */
     public async reply(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            const parentPostId = request.params.postId as string
+            const userId = request.user!.id
+            const parentId = request.params.id
             // TODO: Get authenticated user ID
-            const userId = 'usr_1' // Placeholder
 
-            if (!parentPostId) {
+            if (!parentId) {
                 response.status(400).json({ message: 'Parent post ID is required' })
                 return
             }
 
-            const { content } = this.replyRequest.validate(request.body)
-            const post = await this.postService.createReply(parentPostId, userId, content)
+            const payload = this.replyRequest.validate(request.body)
+            const post = await this.postService.replyToPost(userId, parentId, payload)
             const data = this.postResource.toResponse(post)
 
-            this.logger?.info('Reply created', { postId: post.id, parentPostId })
+            this.logger?.info('Reply created', { postId: post.id, parentId, userId })
             response.status(201).json({ data })
         } catch (error) {
             if (error instanceof ValidationError) {
@@ -104,18 +95,15 @@ export class PostsController {
     /**
      * PATCH /api/posts/:id - Edit post
      */
-    public async edit(req: Request, res: Response, next: NextFunction): Promise<void> {
+    public async edit(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            const { id } = req.params
-            const userId = 'usr_1' // TODO: from auth
-
-            if (!id) throw new Error('Post ID required')
-
-            const { content, reason } = PostEditRequestSchema.parse(req.body)
-            const post = await this.moderationService.editPost(id, userId, content, reason)
-
-            this.logger?.info('Post edited', { postId: id })
-            res.json({ data: this.postResource.toResponse(post) })
+            const userId = request.user!.id
+            const postId = request.params.id
+            const payload = this.editRequest.validate(request.body)
+            const post = await this.moderationService.editPost(postId, userId, payload.content, payload.reason)
+            const data = this.postResource.toResponse(post)
+            this.logger?.info('Post edited', { postId, userId })
+            response.status(200).json({ data })
         } catch (error) {
             next(error)
         }
@@ -124,18 +112,16 @@ export class PostsController {
     /**
      * DELETE /api/posts/:id - Soft delete post
      */
-    public async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+    public async delete(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            const { id } = req.params
-            const userId = 'usr_1' // TODO: from auth
+            const userId = request.user!.id
+            const postId = request.params.id
+            if (!postId) throw new Error('Post ID required')
 
-            if (!id) throw new Error('Post ID required')
-
-            const { reason } = PostDeleteRequestSchema.parse(req.body)
-            await this.moderationService.deletePost(id, userId, reason)
-
-            this.logger?.info('Post deleted', { postId: id })
-            res.status(204).send()
+            const payload = this.deleteRequest.validate(request.body)
+            await this.moderationService.deletePost(postId, userId, payload.reason)
+            this.logger?.info('Post deleted', { postId, userId })
+            response.status(204).send()
         } catch (error) {
             next(error)
         }
@@ -144,17 +130,15 @@ export class PostsController {
     /**
      * POST /api/posts/:id/restore - Restore deleted post
      */
-    public async restore(req: Request, res: Response, next: NextFunction): Promise<void> {
+    public async restore(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            const { id } = req.params
-            const userId = 'usr_1' // TODO: from auth
+            const userId = request.user!.id
+            const postId = request.params.id
+            if (!postId) throw new Error('Post ID required')
 
-            if (!id) throw new Error('Post ID required')
-
-            const post = await this.moderationService.restorePost(id, userId)
-
-            this.logger?.info('Post restored', { postId: id })
-            res.json({ data: this.postResource.toResponse(post) })
+            await this.moderationService.restorePost(postId, userId)
+            this.logger?.info('Post restored', { postId, userId })
+            response.status(200).json({ data: await this.moderationService.getPostWithHistory(postId) })
         } catch (error) {
             next(error)
         }

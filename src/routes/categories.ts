@@ -20,7 +20,7 @@ export class CategoryRoutes {
     }
 
     public map(server: Express): void {
-        server.get('/api/categories', (request, response, next) => this.controller.index(request, response, next))
-        server.post('/api/categories', (request, response, next) => this.controller.store(request, response, next))
+        server.get('/api/v1/categories', (request, response, next) => this.controller.index(request, response, next))
+        server.post('/api/v1/categories', (request, response, next) => this.controller.store(request, response, next))
     }
 }

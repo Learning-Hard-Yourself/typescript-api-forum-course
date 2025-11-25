@@ -21,17 +21,17 @@ export class VoteRoutes {
 
     public map(server: Express): void {
         // Cast or update vote
-        server.post('/api/posts/:postId/vote', (request, response, next) =>
+        server.post('/api/v1/posts/:postId/vote', (request, response, next) =>
             this.controller.vote(request, response, next),
         )
 
         // Remove vote
-        server.delete('/api/posts/:postId/vote', (request, response, next) =>
+        server.delete('/api/v1/posts/:postId/vote', (request, response, next) =>
             this.controller.removeVote(request, response, next),
         )
 
         // Get vote summary
-        server.get('/api/posts/:postId/votes', (request, response, next) =>
+        server.get('/api/v1/posts/:postId/votes', (request, response, next) =>
             this.controller.getVoteSummary(request, response, next),
         )
     }

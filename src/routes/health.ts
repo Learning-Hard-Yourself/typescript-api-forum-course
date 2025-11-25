@@ -10,7 +10,7 @@ export class HealthRoutes {
   }
 
   public map(server: Express): void {
-    server.get('/api/health', (request, response) => {
+    server.get('/api/v1/health', (request, response) => {
       this.controller.handle(request, response)
     })
   }

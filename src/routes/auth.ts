@@ -25,7 +25,7 @@ export class AuthRoutes {
 
   public map(server: Express): void {
     // Register endpoint
-    server.post('/api/auth/register', async (request: Request, response: Response, next: NextFunction) => {
+    server.post('/api/v1/auth/register', async (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = await this.registerUser.execute(request, response, request.body)
         response.status(201).json({ data: result })
@@ -43,7 +43,7 @@ export class AuthRoutes {
     })
 
     // Login endpoint
-    server.post('/api/auth/login', async (request: Request, response: Response, next: NextFunction) => {
+    server.post('/api/v1/auth/login', async (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = await this.loginUser.execute(request, response, request.body)
         response.status(200).json({ data: result })
@@ -59,7 +59,7 @@ export class AuthRoutes {
     })
 
     // Get session endpoint
-    server.get('/api/auth/me', async (request: Request, response: Response, next: NextFunction) => {
+    server.get('/api/v1/auth/me', async (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = await this.getCurrentUser.execute(request)
         response.status(200).json({ data: result })
@@ -72,7 +72,7 @@ export class AuthRoutes {
     })
 
     // Logout endpoint
-    server.post('/api/auth/logout', async (request: Request, response: Response, next: NextFunction) => {
+    server.post('/api/v1/auth/logout', async (request: Request, response: Response, next: NextFunction) => {
       try {
         await this.logoutUser.execute(request, response)
         response.status(204).send()

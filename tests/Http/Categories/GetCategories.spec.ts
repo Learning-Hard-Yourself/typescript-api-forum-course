@@ -34,7 +34,7 @@ describe('GET /api/categories', () => {
             updatedAt: new Date().toISOString(),
         })
 
-        const response = await request(context.app).get('/api/categories').expect(200)
+        const response = await request(context.app).get('/api/v1/categories').expect(200)
 
         expect(response.body.data).toHaveLength(1) // Only root categories
         expect(response.body.data[0]).toMatchObject({
@@ -55,7 +55,7 @@ describe('GET /api/categories', () => {
     it('returns empty array when no categories exist', async () => {
         const context = await createTestApplication()
 
-        const response = await request(context.app).get('/api/categories').expect(200)
+        const response = await request(context.app).get('/api/v1/categories').expect(200)
 
         expect(response.body.data).toEqual([])
     })

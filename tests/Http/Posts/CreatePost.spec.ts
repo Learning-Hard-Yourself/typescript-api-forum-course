@@ -1,67 +1,58 @@
 import { eq } from 'drizzle-orm'
-import request from 'supertest'
 import { v7 as uuidv7 } from 'uuid'
 import { describe, expect, it } from 'vitest'
 
 import { categories, posts, threads, users } from '@/config/schema'
+import { authenticateUser, authenticatedRequest } from '@tests/support/authHelper'
 import { createTestApplication } from '@tests/support/createTestApplication'
 
 describe('POST /api/posts', () => {
     it('creates a new post and updates thread stats', async () => {
         const context = await createTestApplication()
 
-        // Setup: User, Category and Thread
-        const userId = 'usr_1'
-        await context.database.insert(users).values({
-            id: userId,
+        // Authenticate user
+        const cookie = await authenticateUser(context.app, {
             username: 'testuser',
             email: 'test@example.com',
             displayName: 'Test User',
-            role: 'user',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            lastActiveAt: new Date().toISOString(),
+            password: 'SecurePassword123!',
         })
 
+        // Get authenticated user ID from database
+        const [user] = await context.database.select().from(users).where(eq(users.email, 'test@example.com'))
+        const userId = user.id
+
+        // Create category
         const categoryId = uuidv7()
         await context.database.insert(categories).values({
             id: categoryId,
             name: 'General',
             slug: 'general',
             order: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         })
 
+        // Create thread
         const threadId = uuidv7()
-        const initialPostId = uuidv7()
         await context.database.insert(threads).values({
             id: threadId,
             categoryId,
-            authorId: 'usr_1',
-            title: 'Hello World',
-            slug: 'hello-world',
-            lastPostId: null, // Initially null
+            authorId: userId,
+            title: 'Test Thread',
+            slug: 'test-thread',
             replyCount: 0,
-            viewCount: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         })
-
-        // Create initial post
-        await context.database.insert(posts).values({
-            id: initialPostId,
-            threadId,
-            authorId: 'usr_1',
-            content: 'First post',
-        })
-
-        // Update thread with lastPostId
-        await context.database.update(threads).set({ lastPostId: initialPostId }).where(eq(threads.id, threadId))
 
         const payload = {
             threadId,
             content: 'This is a reply.',
         }
 
-        const response = await request(context.app)
-            .post('/api/posts')
+        const response = await authenticatedRequest(context.app, cookie)
+            .post('/api/v1/posts')
             .send(payload)
             .expect(201)
 

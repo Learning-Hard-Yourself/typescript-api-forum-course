@@ -60,7 +60,7 @@ describe('User Stats', () => {
         // 5. Verify Stats via API
         // Expected Reputation: (1 Thread * 5) + (1 Post * 2) + (10 Vote Score) = 17
         const response = await request(context.app)
-            .get(`/api/users/${userId}/stats`)
+            .get(`/api/v1/users/${userId}/stats`)
             .expect(200)
 
         expect(response.body.data).toMatchObject({

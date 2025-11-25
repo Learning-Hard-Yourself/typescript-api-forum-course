@@ -1,9 +1,9 @@
 import type { Express } from 'express'
 
-import { ThreadsController } from '@/app/Http/Controllers/ThreadsController'
-import { ThreadCreationRequest } from '@/app/Http/Requests/ThreadCreationRequest'
-import { ThreadResource } from '@/app/Http/Resources/ThreadResource'
-import { ThreadService } from '@/app/Services/ThreadService'
+import { ThreadsController } from '@/app/features/threads/controllers/ThreadsController'
+import { ThreadCreationRequest } from '@/app/features/threads/requests/ThreadCreationRequest'
+import { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
+import { ThreadService } from '@/app/features/threads/services/ThreadService'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class ThreadRoutes {

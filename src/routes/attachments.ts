@@ -1,9 +1,9 @@
 import type { Express } from 'express'
 
-import { AttachmentsController } from '@/app/Http/Controllers/AttachmentsController'
-import { AttachmentCreationRequest } from '@/app/Http/Requests/AttachmentCreationRequest'
-import { AttachmentResource } from '@/app/Http/Resources/AttachmentResource'
-import { AttachmentService } from '@/app/Services/AttachmentService'
+import { AttachmentsController } from '@/app/features/attachments/controllers/AttachmentsController'
+import { AttachmentCreationRequest } from '@/app/features/attachments/requests/AttachmentCreationRequest'
+import { AttachmentResource } from '@/app/features/attachments/resources/AttachmentResource'
+import { AttachmentService } from '@/app/features/attachments/services/AttachmentService'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class AttachmentRoutes {

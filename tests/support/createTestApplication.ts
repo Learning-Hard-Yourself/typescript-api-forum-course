@@ -1,9 +1,9 @@
 import type { Express } from 'express'
 
 import { Application } from '@/bootstrap/Application'
-import { createDatabase } from '@/database/client'
-import { runMigrations } from '@/database/migrator'
-import { resetAuth } from '@/auth'
+import { createDatabase } from '@/config/database'
+import { runMigrations } from '@/config/migrator'
+import { resetAuth } from '@/config/auth'
 import type { ForumDatabase } from '@/database/types'
 
 export interface TestApplicationContext {

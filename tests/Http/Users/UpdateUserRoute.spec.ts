@@ -3,7 +3,7 @@ import request from 'supertest'
 import { eq } from 'drizzle-orm'
 
 import { createTestApplication } from '@tests/support/createTestApplication'
-import { users } from '@/database/schema'
+import { users } from '@/config/schema'
 
 const seedUser = async (context: Awaited<ReturnType<typeof createTestApplication>>) => {
   const userId = 'usr_1'

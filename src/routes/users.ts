@@ -1,9 +1,9 @@
 import type { Express } from 'express'
 
-import { UsersController } from '@/app/Http/Controllers/UsersController'
-import { UserUpdateRequest } from '@/app/Http/Requests/UserUpdateRequest'
-import { UserResource } from '@/app/Http/Resources/UserResource'
-import { UserUpdater } from '@/app/Services/UserUpdater'
+import { UsersController } from '@/app/features/users/controllers/UsersController'
+import { UserUpdateRequest } from '@/app/features/users/requests/UserUpdateRequest'
+import { UserResource } from '@/app/features/users/resources/UserResource'
+import { UserUpdater } from '@/app/features/users/services/UserUpdater'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class UserRoutes {

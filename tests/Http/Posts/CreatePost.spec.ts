@@ -3,7 +3,7 @@ import request from 'supertest'
 import { v7 as uuidv7 } from 'uuid'
 import { describe, expect, it } from 'vitest'
 
-import { categories, posts, threads, users } from '@/database/schema'
+import { categories, posts, threads, users } from '@/config/schema'
 import { createTestApplication } from '@tests/support/createTestApplication'
 
 describe('POST /api/posts', () => {

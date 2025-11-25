@@ -2,7 +2,7 @@ import request from 'supertest'
 import { v7 as uuidv7 } from 'uuid'
 import { describe, expect, it } from 'vitest'
 
-import { profiles, users } from '@/database/schema'
+import { profiles, users } from '@/config/schema'
 import { createTestApplication } from '@tests/support/createTestApplication'
 
 describe('GET /api/profiles/:userId', () => {

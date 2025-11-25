@@ -1,11 +1,11 @@
 import { APIError } from 'better-call'
 import type { Express, NextFunction, Request, Response } from 'express'
 
-import { GetCurrentUser } from '@/app/UseCases/Auth/GetCurrentUser'
-import { LoginUser } from '@/app/UseCases/Auth/LoginUser'
-import { LogoutUser } from '@/app/UseCases/Auth/LogoutUser'
-import { RegisterUser } from '@/app/UseCases/Auth/RegisterUser'
-import { initAuth } from '@/auth'
+import { GetCurrentUser } from '@/app/features/auth/use-cases/GetCurrentUser'
+import { LoginUser } from '@/app/features/auth/use-cases/LoginUser'
+import { LogoutUser } from '@/app/features/auth/use-cases/LogoutUser'
+import { RegisterUser } from '@/app/features/auth/use-cases/RegisterUser'
+import { initAuth } from '@/config/auth'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class AuthRoutes {

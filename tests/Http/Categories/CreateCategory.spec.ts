@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
 
-import { categories } from '@/database/schema'
+import { categories } from '@/config/schema'
 import { createTestApplication } from '@tests/support/createTestApplication'
 
 describe('POST /api/categories', () => {

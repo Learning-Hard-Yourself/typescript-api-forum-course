@@ -1,9 +1,9 @@
 import type { Express } from 'express'
 
-import { PostsController } from '@/app/Http/Controllers/PostsController'
-import { PostCreationRequest } from '@/app/Http/Requests/PostCreationRequest'
-import { PostResource } from '@/app/Http/Resources/PostResource'
-import { PostService } from '@/app/Services/PostService'
+import { PostsController } from '@/app/features/posts/controllers/PostsController'
+import { PostCreationRequest } from '@/app/features/posts/requests/PostCreationRequest'
+import { PostResource } from '@/app/features/posts/resources/PostResource'
+import { PostService } from '@/app/features/posts/services/PostService'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class PostRoutes {

@@ -3,8 +3,8 @@ import 'dotenv-safe/config'
 import type { AddressInfo } from 'node:net'
 
 import { Application } from '@/bootstrap/Application'
-import { createDatabase } from '@/database/client'
-import { runMigrations } from '@/database/migrator'
+import { createDatabase } from '@/config/database'
+import { runMigrations } from '@/config/migrator'
 
 const port = Number(process.env.PORT ?? 3000)
 const databaseFile = process.env.DB_FILE_NAME ?? 'file:database.db'

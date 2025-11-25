@@ -1,9 +1,9 @@
 import type { Express } from 'express'
 
-import { CategoriesController } from '@/app/Http/Controllers/CategoriesController'
-import { CategoryCreationRequest } from '@/app/Http/Requests/CategoryCreationRequest'
-import { CategoryResource } from '@/app/Http/Resources/CategoryResource'
-import { CategoryService } from '@/app/Services/CategoryService'
+import { CategoriesController } from '@/app/features/categories/controllers/CategoriesController'
+import { CategoryCreationRequest } from '@/app/features/categories/requests/CategoryCreationRequest'
+import { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
+import { CategoryService } from '@/app/features/categories/services/CategoryService'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class CategoryRoutes {

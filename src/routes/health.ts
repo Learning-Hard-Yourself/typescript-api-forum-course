@@ -1,6 +1,6 @@
 import type { Express } from 'express'
 
-import { HealthCheckController } from '@/app/Http/Controllers/HealthCheckController'
+import { HealthCheckController } from '@/app/features/health/controllers/HealthCheckController'
 
 export class HealthRoutes {
   private readonly controller: HealthCheckController

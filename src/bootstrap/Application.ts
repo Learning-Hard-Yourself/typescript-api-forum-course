@@ -2,10 +2,10 @@ import express, { type Express } from 'express'
 
 import { registerRoutes } from '@/routes'
 import type { ApplicationDependencies } from '@/routes/types'
-import { Logger } from '@/app/Logging/Logger'
-import { createRequestLoggerMiddleware } from '@/app/Http/Middleware/RequestLoggerMiddleware'
-import { createNotFoundMiddleware } from '@/app/Http/Middleware/NotFoundMiddleware'
-import { createErrorHandlerMiddleware } from '@/app/Http/Middleware/ErrorHandlerMiddleware'
+import { Logger } from '@/app/shared/logging/Logger'
+import { createRequestLoggerMiddleware } from '@/app/shared/http/middleware/RequestLoggerMiddleware'
+import { createNotFoundMiddleware } from '@/app/shared/http/middleware/NotFoundMiddleware'
+import { createErrorHandlerMiddleware } from '@/app/shared/http/middleware/ErrorHandlerMiddleware'
 
 export class Application {
   private readonly server: Express

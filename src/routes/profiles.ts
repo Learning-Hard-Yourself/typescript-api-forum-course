@@ -1,9 +1,9 @@
 import type { Express } from 'express'
 
-import { ProfilesController } from '@/app/Http/Controllers/ProfilesController'
-import { ProfileUpdateRequest } from '@/app/Http/Requests/ProfileUpdateRequest'
-import { ProfileResource } from '@/app/Http/Resources/ProfileResource'
-import { ProfileService } from '@/app/Services/ProfileService'
+import { ProfilesController } from '@/app/features/profiles/controllers/ProfilesController'
+import { ProfileUpdateRequest } from '@/app/features/profiles/requests/ProfileUpdateRequest'
+import { ProfileResource } from '@/app/features/profiles/resources/ProfileResource'
+import { ProfileService } from '@/app/features/profiles/services/ProfileService'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class ProfileRoutes {

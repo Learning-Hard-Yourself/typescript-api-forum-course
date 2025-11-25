@@ -3,7 +3,7 @@ import request from 'supertest'
 import { v7 as uuidv7 } from 'uuid'
 import { describe, expect, it } from 'vitest'
 
-import { users } from '@/database/schema'
+import { users } from '@/config/schema'
 import type { ForumDatabase } from '@/database/types'
 import { createTestApplication } from '@tests/support/createTestApplication'
 

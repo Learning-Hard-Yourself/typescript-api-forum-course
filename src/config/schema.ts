@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { integer, sqliteTable, text, unique, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
@@ -117,14 +117,16 @@ export const posts = sqliteTable('posts', {
   threadId: text('thread_id')
     .notNull()
     .references(() => threads.id, { onDelete: 'cascade' }),
-  parentPostId: text('parent_post_id'), // Self-reference
+  parentPostId: text('parent_post_id').references((): any => posts.id, { onDelete: 'cascade' }),
   authorId: text('author_id')
     .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
+    .references(() => users.id),
   content: text('content').notNull(),
   voteScore: integer('vote_score').notNull().default(0),
   isEdited: integer('is_edited', { mode: 'boolean' }).notNull().default(false),
   isDeleted: integer('is_deleted', { mode: 'boolean' }).notNull().default(false),
+  deletedAt: text('deleted_at'),
+  deletedBy: text('deleted_by').references(() => users.id),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
@@ -145,20 +147,34 @@ export const votes = sqliteTable(
   'votes',
   {
     id: text('id').primaryKey(),
-    postId: text('post_id')
-      .notNull()
-      .references(() => posts.id, { onDelete: 'cascade' }),
     userId: text('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    voteType: text('vote_type').notNull(), // 'upvote' | 'downvote'
+    postId: text('post_id')
+      .notNull()
+      .references(() => posts.id, { onDelete: 'cascade' }),
+    voteType: text('vote_type', { enum: ['upvote', 'downvote'] }).notNull(),
     createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   },
-  (table) => ({
-    // Ensure one vote per user per post
-    uniqueVote: uniqueIndex('votes_post_user_idx').on(table.postId, table.userId),
+  table => ({
+    userPostUnique: unique().on(table.userId, table.postId),
   }),
 )
 
-export const schema = { users, accounts, sessions, verifications, profiles, categories, threads, posts, attachments, votes }
+// Post edit history table
+export const postEdits = sqliteTable('post_edits', {
+  id: text('id').primaryKey(),
+  postId: text('post_id')
+    .notNull()
+    .references(() => posts.id, { onDelete: 'cascade' }),
+  editorId: text('editor_id')
+    .notNull()
+    .references(() => users.id),
+  previousContent: text('previous_content').notNull(),
+  newContent: text('new_content').notNull(),
+  editReason: text('edit_reason'),
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+})
+
+export const schema = { users, accounts, sessions, verifications, profiles, categories, threads, posts, attachments, votes, postEdits }

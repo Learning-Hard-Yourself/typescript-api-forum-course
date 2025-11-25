@@ -17,6 +17,7 @@ export class PostRoutes {
             new PostReplyRequest(),
             new PostResource(),
             postService,
+            dependencies.database,  // Add database
             dependencies.logger?.child({ context: 'PostsController' }),
         )
     }
@@ -32,5 +33,11 @@ export class PostRoutes {
         server.get('/api/threads/:threadId/posts', (request, response, next) =>
             this.controller.getThreadPosts(request, response, next),
         )
+
+        // Moderation endpoints
+        server.patch('/api/posts/:id', (request, response, next) => this.controller.edit(request, response, next))
+        server.delete('/api/posts/:id', (request, response, next) => this.controller.delete(request, response, next))
+        server.post('/api/posts/:id/restore', (request, response, next) => this.controller.restore(request, response, next))
+        server.get('/api/posts/:id/history', (request, response, next) => this.controller.history(request, response, next))
     }
 }

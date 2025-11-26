@@ -2,8 +2,8 @@ import type { Auth } from 'better-auth'
 import { eq, or } from 'drizzle-orm'
 import type { Request, Response } from 'express'
 
-import { users } from '@/config/schema'
 import type { ForumDatabase } from '@/config/database-types'
+import { users } from '@/config/schema'
 import { AuthUserFetcher } from './AuthUserFetcher'
 import { applyCookies, toWebRequest } from './helpers'
 
@@ -64,6 +64,11 @@ export class RegisterUser {
         const body = rawBody ? JSON.parse(rawBody) : null
 
         if (betterAuthResponse.status !== 200 || !body?.user) {
+            console.error('BETTER-AUTH FAILURE:', {
+                status: betterAuthResponse.status,
+                body,
+                headers: Object.fromEntries(betterAuthResponse.headers.entries())
+            })
             throw new Error('Failed to register user')
         }
 

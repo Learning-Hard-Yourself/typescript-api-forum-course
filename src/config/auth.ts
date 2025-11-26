@@ -1,11 +1,11 @@
-import type { Middleware } from 'better-call'
-import { APIError } from 'better-call'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import type { Middleware } from 'better-call'
+import { APIError } from 'better-call'
 import { v7 as uuidv7 } from 'uuid'
 
-import type { ApplicationDependencies } from '@/routes/types'
 import { schema } from '@/config/schema'
+import type { ApplicationDependencies } from '@/routes/types'
 
 const DEFAULT_MIN_PASSWORD_LENGTH = 12
 const DEFAULT_MAX_PASSWORD_LENGTH = 128

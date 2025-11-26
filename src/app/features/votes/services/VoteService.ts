@@ -14,7 +14,6 @@ export class VoteService {
 
 
     public async castVote(postId: string, userId: string, voteType: VoteType): Promise<{ vote: Vote; score: number }> {
-
         const post = await this.database.query.posts.findFirst({
             where: eq(posts.id, postId),
         })

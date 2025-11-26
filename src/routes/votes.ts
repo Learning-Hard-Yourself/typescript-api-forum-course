@@ -4,6 +4,7 @@ import { VotesController } from '@/app/features/votes/controllers/VotesControlle
 import { VoteRequest } from '@/app/features/votes/requests/VoteRequest'
 import { VoteResource } from '@/app/features/votes/resources/VoteResource'
 import { VoteService } from '@/app/features/votes/services/VoteService'
+import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class VoteRoutes {
@@ -20,17 +21,8 @@ export class VoteRoutes {
     }
 
     public map(server: Express): void {
-
-        server.post('/api/v1/posts/:postId/vote', (request, response, next) =>
-            this.controller.vote(request, response, next),
-        )
-
-        server.delete('/api/v1/posts/:postId/vote', (request, response, next) =>
-            this.controller.removeVote(request, response, next),
-        )
-
-        server.get('/api/v1/posts/:postId/votes', (request, response, next) =>
-            this.controller.getVoteSummary(request, response, next),
-        )
+        server.post('/api/v1/posts/:postId/vote', authMiddleware, (request, response, next) => this.controller.vote(request, response, next))
+        server.delete('/api/v1/posts/:postId/vote', authMiddleware, (request, response, next) => this.controller.removeVote(request, response, next))
+        server.get('/api/v1/posts/:postId/votes', (request, response, next) => this.controller.getVoteSummary(request, response, next))
     }
 }

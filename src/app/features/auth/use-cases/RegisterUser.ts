@@ -5,7 +5,7 @@ import type { Request, Response } from 'express'
 import type { ForumDatabase } from '@/config/database-types'
 import { users } from '@/config/schema'
 import { AuthUserFetcher } from './AuthUserFetcher'
-import { applyCookies, toWebRequest } from './helpers'
+import { applyCookies, extractAccessToken, toWebRequest } from './helpers'
 
 export interface RegisterUserData {
     username: string
@@ -15,6 +15,7 @@ export interface RegisterUserData {
 }
 
 export interface RegisterUserResult {
+    accessToken: string
     user: {
         id: string
         username: string
@@ -36,7 +37,7 @@ export class RegisterUser {
     }
 
     async execute(req: Request, res: Response, data: RegisterUserData): Promise<RegisterUserResult> {
-        const { username, email, password, displayName } = data
+        const { username, email, displayName } = data
 
         const predicates = []
         if (username) {
@@ -58,6 +59,7 @@ export class RegisterUser {
         const webRequest = toWebRequest(req, '/api/auth/sign-up/email')
         const betterAuthResponse = await this.auth.handler(webRequest)
 
+        // Apply refresh token cookie (httpOnly for security)
         applyCookies(betterAuthResponse, res)
 
         const rawBody = await betterAuthResponse.text()
@@ -72,6 +74,15 @@ export class RegisterUser {
             throw new Error('Failed to register user')
         }
 
+        // Extract access token: try header first, then body
+        const accessToken = extractAccessToken(betterAuthResponse) ?? extractSessionToken(body)
+
+        if (!accessToken) {
+            console.error('ACCESS-TOKEN NOT FOUND. Headers:', Object.fromEntries(betterAuthResponse.headers.entries()))
+            console.error('Body:', body)
+            throw new Error('Failed to generate access token')
+        }
+
         const safeUser = await this.userFetcher.fetchAndFormatUser(
             body.user,
             email,
@@ -79,6 +90,6 @@ export class RegisterUser {
             displayName,
         )
 
-        return { user: safeUser }
+        return { accessToken, user: safeUser }
     }
 }

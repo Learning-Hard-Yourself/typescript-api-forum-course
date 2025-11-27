@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 
 import type { ForumDatabase } from '@/config/database-types'
 import { AuthUserFetcher } from './AuthUserFetcher'
-import { applyCookies, toWebRequest } from './helpers'
+import { applyCookies, extractAccessToken, toWebRequest } from './helpers'
 
 export interface LoginUserData {
     email: string
@@ -11,6 +11,7 @@ export interface LoginUserData {
 }
 
 export interface LoginUserResult {
+    accessToken: string
     user: {
         id: string
         username: string
@@ -36,6 +37,7 @@ export class LoginUser {
         const webRequest = toWebRequest(req, '/api/auth/sign-in/email')
         const betterAuthResponse = await this.auth.handler(webRequest)
 
+        // Apply refresh token cookie (httpOnly for security)
         applyCookies(betterAuthResponse, res)
 
         const rawBody = await betterAuthResponse.text()
@@ -45,8 +47,15 @@ export class LoginUser {
             throw new Error('Invalid credentials')
         }
 
+        // Extract access token: try header first, then body
+        const accessToken = extractAccessToken(betterAuthResponse) ?? extractSessionToken(body)
+
+        if (!accessToken) {
+            throw new Error('Failed to generate access token')
+        }
+
         const safeUser = await this.userFetcher.fetchAndFormatUser(body.user, data.email)
 
-        return { user: safeUser }
+        return { accessToken, user: safeUser }
     }
 }

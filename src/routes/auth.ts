@@ -4,6 +4,7 @@ import type { Express, NextFunction, Request, Response } from 'express'
 import { GetCurrentUser } from '@/app/features/auth/use-cases/GetCurrentUser'
 import { LoginUser } from '@/app/features/auth/use-cases/LoginUser'
 import { LogoutUser } from '@/app/features/auth/use-cases/LogoutUser'
+import { RefreshToken } from '@/app/features/auth/use-cases/RefreshToken'
 import { RegisterUser } from '@/app/features/auth/use-cases/RegisterUser'
 import { rateLimiters } from '@/app/shared/http/middleware/RateLimitMiddleware'
 import { initAuth } from '@/config/auth'
@@ -14,6 +15,7 @@ export class AuthRoutes {
   private readonly loginUser: LoginUser
   private readonly getCurrentUser: GetCurrentUser
   private readonly logoutUser: LogoutUser
+  private readonly refreshToken: RefreshToken
 
   public constructor(private readonly dependencies: ApplicationDependencies) {
     const auth = initAuth(dependencies)
@@ -22,6 +24,7 @@ export class AuthRoutes {
     this.loginUser = new LoginUser(auth, dependencies.database)
     this.getCurrentUser = new GetCurrentUser(auth, dependencies.database)
     this.logoutUser = new LogoutUser(auth)
+    this.refreshToken = new RefreshToken(auth)
   }
 
   public map(server: Express): void {
@@ -65,6 +68,18 @@ export class AuthRoutes {
       } catch (error: any) {
         if (error.message === 'Unauthorized') {
           return response.status(401).json({ message: 'Unauthorized' })
+        }
+        next(error)
+      }
+    })
+
+    server.post('/api/v1/auth/refresh', async (request: Request, response: Response, next: NextFunction) => {
+      try {
+        const result = await this.refreshToken.execute(request, response)
+        response.status(200).json({ data: result })
+      } catch (error: any) {
+        if (error.message === 'Session expired' || error.message === 'Failed to refresh access token') {
+          return response.status(401).json({ message: 'Session expired' })
         }
         next(error)
       }

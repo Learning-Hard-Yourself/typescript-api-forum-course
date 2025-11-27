@@ -7,6 +7,7 @@ import { HealthRoutes } from '@/routes/health'
 import { NotificationRoutes } from '@/routes/notifications'
 import { PostRoutes } from '@/routes/posts'
 import { ProfileRoutes } from '@/routes/profiles'
+import { ReportRoutes } from '@/routes/reports'
 import { ThreadRoutes } from '@/routes/threads'
 import type { ApplicationDependencies } from '@/routes/types'
 import { UserRoutes } from '@/routes/users'
@@ -23,4 +24,5 @@ export const registerRoutes = (server: Express, dependencies: ApplicationDepende
   new AttachmentRoutes(dependencies).map(server)
   new VoteRoutes(dependencies).map(server)
   new NotificationRoutes(dependencies).map(server)
+  new ReportRoutes(dependencies).map(server)
 }

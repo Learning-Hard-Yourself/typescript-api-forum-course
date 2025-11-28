@@ -7,9 +7,6 @@ export interface ReportFinderInput {
     id: ReportId
 }
 
-/**
- * Use case for finding a report by ID.
- */
 export class ReportFinder {
     private readonly store = ReportStore.getInstance()
 

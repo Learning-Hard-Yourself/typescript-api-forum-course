@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { VoteRequest } from '@/app/features/votes/requests/VoteRequest'
-import type { VoteResource } from '@/app/features/votes/resources/VoteResource'
-import type { VoteCaster } from '@/app/features/votes/use-cases/VoteCaster'
+import { VoteResource } from '@/app/features/votes/resources/VoteResource'
+import type { VoteCaster, VoteCasterError } from '@/app/features/votes/use-cases/VoteCaster'
 import type { VoteRemover } from '@/app/features/votes/use-cases/VoteRemover'
 import type { VoteRetriever } from '@/app/features/votes/use-cases/VoteRetriever'
 import type { Logger } from '@/app/shared/logging/Logger'
@@ -10,7 +10,6 @@ import type { Logger } from '@/app/shared/logging/Logger'
 export class VotesController {
     public constructor(
         private readonly voteRequest: VoteRequest,
-        private readonly voteResource: VoteResource,
         private readonly voteCaster: VoteCaster,
         private readonly voteRemover: VoteRemover,
         private readonly voteRetriever: VoteRetriever,
@@ -35,6 +34,11 @@ export class VotesController {
                 voteType: validatedData.voteType,
             })
 
+            if (!result.ok) {
+                this.handleVoteError(response, result.error)
+                return
+            }
+
             this.logger?.info('Vote cast successfully', {
                 context: 'VotesController',
                 postId,
@@ -43,11 +47,24 @@ export class VotesController {
             })
 
             response.status(200).json({
-                vote: this.voteResource.toJson(result.vote),
-                postScore: result.score,
+                data: {
+                    vote: new VoteResource(result.value.vote).toArray(),
+                    postScore: result.value.score,
+                },
             })
         } catch (error: unknown) {
             next(error)
+        }
+    }
+
+    private handleVoteError(response: Response, error: VoteCasterError): void {
+        switch (error.code) {
+            case 'POST_NOT_FOUND':
+                response.status(404).json({ message: `Post with ID ${error.postId} not found` })
+                break
+            case 'DATABASE_ERROR':
+                response.status(500).json({ message: error.message })
+                break
         }
     }
 
@@ -96,7 +113,7 @@ export class VotesController {
 
             const score = await this.voteRetriever.getVoteScore({ postId })
 
-            response.status(200).json(this.voteResource.scoreToJson(score))
+            response.status(200).json(VoteResource.scoreToJson(score))
         } catch (error: unknown) {
             next(error)
         }

@@ -2,7 +2,6 @@ import type { Express } from 'express'
 
 import { ProfilesController } from '@/app/features/profiles/controllers/ProfilesController'
 import { ProfileUpdateRequest } from '@/app/features/profiles/requests/ProfileUpdateRequest'
-import { ProfileResource } from '@/app/features/profiles/resources/ProfileResource'
 import { ProfileFinder } from '@/app/features/profiles/use-cases/ProfileFinder'
 import { ProfileUpdater } from '@/app/features/profiles/use-cases/ProfileUpdater'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
@@ -19,7 +18,6 @@ export class ProfileRoutes {
 
         this.controller = new ProfilesController(
             new ProfileUpdateRequest(),
-            new ProfileResource(),
             profileFinder,
             profileUpdater,
             dependencies.logger?.child({ context: 'ProfilesController' }),

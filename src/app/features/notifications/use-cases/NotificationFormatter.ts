@@ -1,8 +1,5 @@
 import type { NotificationPayload } from '@/app/features/notifications/models/NotificationTypes'
 
-/**
- * Use case for formatting notification messages.
- */
 export class NotificationFormatter {
     public execute(notification: NotificationPayload): string {
         switch (notification.type) {

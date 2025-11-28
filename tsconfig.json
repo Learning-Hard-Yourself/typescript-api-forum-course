@@ -26,6 +26,42 @@
       "@/*": [
         "*"
       ],
+      "@config/*": [
+        "../config/*"
+      ],
+      "@attachments/*": [
+        "../features/attachments/*"
+      ],
+      "@auth/*": [
+        "../features/auth/*"
+      ],
+      "@categories/*": [
+        "../features/categories/*"
+      ],
+      "@moderation/*": [
+        "../features/moderation/*"
+      ],
+      "@posts/*": [
+        "../features/posts/*"
+      ],
+      "@profiles/*": [
+        "../features/profiles/*"
+      ],
+      "@reports/*": [
+        "../features/reports/*"
+      ],
+      "@threads/*": [
+        "../features/threads/*"
+      ],
+      "@users/*": [
+        "../features/users/*"
+      ],
+      "@votes/*": [
+        "../features/votes/*"
+      ],
+      "@shared/*": [
+        "../shared/*"
+      ],
       "@tests/*": [
         "../tests/*"
       ]
@@ -34,6 +70,18 @@
   "include": [
     "src",
     "src/types",
+    "config",
+    "attachments",
+    "auth",
+    "categories",
+    "moderation",
+    "posts",
+    "profiles",
+    "reports",
+    "threads",
+    "users",
+    "votes",
+    "shared",
     "tests"
   ],
   "exclude": [

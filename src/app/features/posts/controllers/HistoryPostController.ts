@@ -3,10 +3,6 @@ import type { NextFunction, Request, Response } from 'express'
 import type { PostHistoryLister } from '@/app/features/posts/use-cases/PostHistoryLister'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for getting post edit history.
- * GET /api/v1/posts/:id/history
- */
 export class HistoryPostController {
     public constructor(
         private readonly postHistoryLister: PostHistoryLister,

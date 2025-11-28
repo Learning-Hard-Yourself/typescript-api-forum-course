@@ -10,9 +10,6 @@ export interface ReportResolverInput {
     resolvedBy: UserId
 }
 
-/**
- * Use case for resolving a report.
- */
 export class ReportResolver {
     private readonly updater = new ReportUpdater()
 

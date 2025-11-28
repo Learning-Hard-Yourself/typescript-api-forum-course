@@ -14,9 +14,6 @@ export interface UserVoteRetrieverInput {
     userId: string
 }
 
-/**
- * Use case for retrieving vote information.
- */
 export class VoteRetriever {
     public constructor(private readonly database: ForumDatabase) {}
 

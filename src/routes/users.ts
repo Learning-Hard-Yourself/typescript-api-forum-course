@@ -3,7 +3,6 @@ import type { Express } from 'express'
 import { StatsUserController } from '@/app/features/users/controllers/StatsUserController'
 import { UpdateUserController } from '@/app/features/users/controllers/UpdateUserController'
 import { UserUpdateRequest } from '@/app/features/users/requests/UserUpdateRequest'
-import { UserResource } from '@/app/features/users/resources/UserResource'
 import { UserStatsRetriever } from '@/app/features/users/use-cases/UserStatsRetriever'
 import { UserUpdater } from '@/app/features/users/use-cases/UserUpdater'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
@@ -20,7 +19,7 @@ export class UserRoutes {
         const userStatsRetriever = new UserStatsRetriever(dependencies.database)
         const logger = dependencies.logger?.child({ context: 'Users' })
 
-        this.updateController = new UpdateUserController(new UserUpdateRequest(), new UserResource(), userUpdater, logger)
+        this.updateController = new UpdateUserController(new UserUpdateRequest(), userUpdater, logger)
         this.statsController = new StatsUserController(userStatsRetriever, logger)
         this.requireOwnership = createRequireOwnership(dependencies.database)
     }

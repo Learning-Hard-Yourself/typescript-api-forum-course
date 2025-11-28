@@ -1,9 +1,6 @@
 import { ReportStatus } from '../models/Report'
 import { ReportStore } from './ReportStore'
 
-/**
- * Use case for retrieving report statistics.
- */
 export class ReportStatsRetriever {
     private readonly store = ReportStore.getInstance()
 

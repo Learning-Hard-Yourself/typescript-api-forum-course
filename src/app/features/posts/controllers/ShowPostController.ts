@@ -1,17 +1,12 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import type { PostResource } from '@/app/features/posts/resources/PostResource'
+import { PostResource } from '@/app/features/posts/resources/PostResource'
 import type { PostFinder } from '@/app/features/posts/use-cases/PostFinder'
 import { CachePresets, headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for showing a single post.
- * GET /api/v1/posts/:id
- */
 export class ShowPostController {
     public constructor(
-        private readonly postResource: PostResource,
         private readonly postFinder: PostFinder,
         private readonly logger?: Logger,
     ) {}
@@ -25,13 +20,13 @@ export class ShowPostController {
             }
 
             const post = await this.postFinder.execute({ id })
-            const data = this.postResource.toResponse(post)
+            const resource = new PostResource(post)
 
             headers(response)
                 .cache(CachePresets.privateShort)
-                .etag({ data })
+                .etag({ data: resource.toArray() })
 
-            response.status(200).json({ data })
+            response.status(200).json(resource.toResponse())
         } catch (error) {
             this.logger?.error(error as Error)
             next(error)

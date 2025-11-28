@@ -8,9 +8,6 @@ export interface NotificationMarkerInput {
     userId: string
 }
 
-/**
- * Use case for marking a notification as read.
- */
 export class NotificationMarker {
     public constructor(private readonly database: ForumDatabase) {}
 

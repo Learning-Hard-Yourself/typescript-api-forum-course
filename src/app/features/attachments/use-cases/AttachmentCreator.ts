@@ -10,9 +10,6 @@ export interface AttachmentCreatorInput {
     attributes: AttachmentCreationAttributes & { url: string }
 }
 
-/**
- * Use case for creating an attachment record.
- */
 export class AttachmentCreator {
     public constructor(private readonly database: ForumDatabase) {}
 

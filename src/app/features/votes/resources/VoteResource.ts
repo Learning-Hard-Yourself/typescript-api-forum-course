@@ -1,28 +1,30 @@
-import type { Vote, VoteScore } from '@/app/features/votes/models/Vote'
+import type { Vote, VoteScore, VoteType } from '@/app/features/votes/models/Vote'
+import { JsonResource, jsonCollection } from '@/app/shared/resources/JsonResource'
 
-export class VoteResource {
+export interface VoteOutput {
+    id: string
+    postId: string
+    userId: string
+    voteType: VoteType
+    createdAt: string
+}
 
-    public toJson(vote: Vote): Pick<Vote, 'id' | 'postId' | 'userId' | 'voteType' | 'createdAt'> {
+export class VoteResource extends JsonResource<Vote, VoteOutput> {
+    toArray(): VoteOutput {
         return {
-            id: vote.id,
-            postId: vote.postId,
-            userId: vote.userId,
-            voteType: vote.voteType,
-            createdAt: vote.createdAt,
+            id: this.resource.id,
+            postId: this.resource.postId,
+            userId: this.resource.userId,
+            voteType: this.resource.voteType,
+            createdAt: this.resource.createdAt,
         }
     }
 
-
-    public scoreToJson(score: VoteScore): VoteScore {
-        return {
-            upvotes: score.upvotes,
-            downvotes: score.downvotes,
-            score: score.score,
-        }
+    static scoreToJson(score: VoteScore): { data: VoteScore } {
+        return { data: score }
     }
 
-
-    public toJsonArray(votes: Vote[]): ReturnType<typeof this.toJson>[] {
-        return votes.map((vote) => this.toJson(vote))
+    static fromArray(votes: Vote[]) {
+        return jsonCollection(votes.map((vote) => new VoteResource(vote).toArray()))
     }
 }

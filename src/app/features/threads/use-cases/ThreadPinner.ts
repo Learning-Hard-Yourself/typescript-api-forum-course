@@ -12,9 +12,6 @@ export interface ThreadPinnerInput {
     pin: boolean
 }
 
-/**
- * Use case for pinning or unpinning a thread.
- */
 export class ThreadPinner {
     public constructor(private readonly database: ForumDatabase) {}
 

@@ -4,7 +4,6 @@ import { IndexCategoriesController } from '@/app/features/categories/controllers
 import { ShowCategoryController } from '@/app/features/categories/controllers/ShowCategoryController'
 import { StoreCategoryController } from '@/app/features/categories/controllers/StoreCategoryController'
 import { CategoryCreationRequest } from '@/app/features/categories/requests/CategoryCreationRequest'
-import { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
 import { CategoryCreator } from '@/app/features/categories/use-cases/CategoryCreator'
 import { CategoryFinder } from '@/app/features/categories/use-cases/CategoryFinder'
 import { CategoryLister } from '@/app/features/categories/use-cases/CategoryLister'
@@ -19,16 +18,15 @@ export class CategoryRoutes {
     private readonly storeController: StoreCategoryController
 
     public constructor(dependencies: ApplicationDependencies) {
-        const categoryResource = new CategoryResource()
         const logger = dependencies.logger?.child({ context: 'Categories' })
 
         const categoryFinder = new CategoryFinder(dependencies.database)
         const categoryCreator = new CategoryCreator(dependencies.database)
         const categoryLister = new CategoryLister(dependencies.database)
 
-        this.indexController = new IndexCategoriesController(categoryResource, categoryLister, logger)
-        this.showController = new ShowCategoryController(categoryResource, categoryFinder, logger)
-        this.storeController = new StoreCategoryController(new CategoryCreationRequest(), categoryResource, categoryCreator, logger)
+        this.indexController = new IndexCategoriesController(categoryLister, logger)
+        this.showController = new ShowCategoryController(categoryFinder, logger)
+        this.storeController = new StoreCategoryController(new CategoryCreationRequest(), categoryCreator, logger)
     }
 
     public map(server: Express): void {

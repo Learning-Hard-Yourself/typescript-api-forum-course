@@ -12,9 +12,6 @@ export interface ThreadLockerInput {
     lock: boolean
 }
 
-/**
- * Use case for locking or unlocking a thread.
- */
 export class ThreadLocker {
     public constructor(private readonly database: ForumDatabase) {}
 

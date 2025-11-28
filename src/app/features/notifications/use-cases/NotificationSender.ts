@@ -15,9 +15,6 @@ export interface NotificationSenderInput<T extends NotificationType> {
     payload: Omit<PayloadByType<T>, 'type'>
 }
 
-/**
- * Use case for sending a notification to a user.
- */
 export class NotificationSender {
     public constructor(private readonly database: ForumDatabase) {}
 

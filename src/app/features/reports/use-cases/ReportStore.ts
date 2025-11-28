@@ -1,9 +1,5 @@
 import type { Report } from '../models/Report'
 
-/**
- * In-memory store for reports (shared between use cases).
- * In production, this would be replaced with database operations.
- */
 export class ReportStore {
     private static instance: ReportStore
     private readonly reports: Map<string, Report> = new Map()

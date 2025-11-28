@@ -1,17 +1,4 @@
-/**
- * Reports Controller - Uses decorators and middleware pipeline.
- * 
- * Concepts used:
- * - @Log and @Catch decorators
- * - HttpStatus enum
- * - Branded types
- * - Template literal route types
- * 
- * Note: _next parameters are required by the @Catch decorator signature
- */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
-import { Catch, Log } from '@/app/shared/decorators'
+import { Log } from '@/app/shared/decorators'
 import { NotFoundError } from '@/app/shared/errors/NotFoundError'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
 import { HttpStatus } from '@/app/shared/http/HttpStatus'
@@ -30,10 +17,6 @@ import type { ReportFilters, ReportLister } from '../use-cases/ReportLister'
 import type { ReportResolver } from '../use-cases/ReportResolver'
 import type { ReportStatsRetriever } from '../use-cases/ReportStatsRetriever'
 
-// ============================================
-// Controller Class
-// ============================================
-
 export class ReportsController {
     constructor(
         private readonly reportCreator: ReportCreator,
@@ -44,161 +27,133 @@ export class ReportsController {
         private readonly reportStatsRetriever: ReportStatsRetriever,
     ) {}
 
-    /**
-     * Create a new report
-     * POST /api/v1/reports
-     */
     @Log
-    @Catch
-    async create(req: Request, res: Response, _next: NextFunction): Promise<Response> {
-        const { targetType, targetId, reportType, description, priority } = req.body
+    async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { targetType, targetId, reportType, description, priority } = req.body
 
-        // Validate required fields
-        if (!targetType || !targetId || !reportType || !description) {
-            throw new ValidationError([
-                { field: 'body', message: 'Missing required fields' },
-            ])
+            if (!targetType || !targetId || !reportType || !description) {
+                throw new ValidationError([
+                    { field: 'body', message: 'Missing required fields' },
+                ])
+            }
+
+            const target = this.buildReportTarget(targetType, targetId, req.body)
+
+            const input: CreateReportInput = {
+                reporterId: createUserId(req.userId ?? 'anonymous'),
+                target,
+                reportType: this.parseReportType(reportType),
+                description,
+                priority: priority ? this.parsePriority(priority) : undefined,
+            }
+
+            const report = await this.reportCreator.execute(input)
+
+            headers(res)
+                .location({ basePath: '/api/v1/reports', resourceId: report.id })
+
+            res.status(HttpStatus.Created).json({ data: report })
+        } catch (error) {
+            next(error)
         }
-
-        // Build target based on type
-        const target = this.buildReportTarget(targetType, targetId, req.body)
-
-        const input: CreateReportInput = {
-            reporterId: createUserId(req.userId ?? 'anonymous'),
-            target,
-            reportType: this.parseReportType(reportType),
-            description,
-            priority: priority ? this.parsePriority(priority) : undefined,
-        }
-
-        const report = await this.reportCreator.execute(input)
-
-        headers(res)
-            .location({ basePath: '/api/v1/reports', resourceId: report.id })
-
-        return res.status(HttpStatus.Created).json({
-            data: report,
-        })
     }
 
-    /**
-     * Get all reports with filters
-     * GET /api/v1/reports
-     */
     @Log
-    @Catch
-    async index(req: Request, res: Response, _next: NextFunction): Promise<Response> {
-        const { status, priority, type, reporterId } = req.query
+    async index(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { status, priority, type, reporterId } = req.query
 
-        const filters: ReportFilters = {}
-        
-        if (status && typeof status === 'string') {
-            filters.status = status as ReportStatus
-        }
-        if (priority && typeof priority === 'string') {
-            filters.priority = parseInt(priority) as ReportPriority
-        }
-        if (type && typeof type === 'string') {
-            filters.reportType = type as ReportType
-        }
-        if (reporterId && typeof reporterId === 'string') {
-            filters.reporterId = createUserId(reporterId)
-        }
+            const filters: ReportFilters = {}
+            
+            if (status && typeof status === 'string') {
+                filters.status = status as ReportStatus
+            }
+            if (priority && typeof priority === 'string') {
+                filters.priority = parseInt(priority) as ReportPriority
+            }
+            if (type && typeof type === 'string') {
+                filters.reportType = type as ReportType
+            }
+            if (reporterId && typeof reporterId === 'string') {
+                filters.reporterId = createUserId(reporterId)
+            }
 
-        const reports = await this.reportLister.execute(filters)
+            const reports = await this.reportLister.execute(filters)
 
-        return res.status(HttpStatus.OK).json({
-            data: reports,
-            meta: {
-                total: reports.length,
-            },
-        })
+            res.status(HttpStatus.OK).json({ data: reports, meta: { total: reports.length } })
+        } catch (error) {
+            next(error)
+        }
     }
 
-    /**
-     * Get a single report by ID
-     * GET /api/v1/reports/:id
-     */
     @Log
-    @Catch
-    async show(req: Request, res: Response, _next: NextFunction): Promise<Response> {
-        const reportId = createReportId(req.params.id ?? '')
-        const report = await this.reportFinder.execute({ id: reportId })
+    async show(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const reportId = createReportId(req.params.id ?? '')
+            const report = await this.reportFinder.execute({ id: reportId })
 
-        if (!report) {
-            throw new NotFoundError('Report not found', { reportId })
+            if (!report) {
+                throw new NotFoundError('Report not found', { reportId })
+            }
+
+            res.status(HttpStatus.OK).json({ data: report })
+        } catch (error) {
+            next(error)
         }
-
-        return res.status(HttpStatus.OK).json({
-            data: report,
-        })
     }
 
-    /**
-     * Resolve a report
-     * POST /api/v1/reports/:id/resolve
-     */
     @Log
-    @Catch
-    async resolve(req: Request, res: Response, _next: NextFunction): Promise<Response> {
-        const reportId = createReportId(req.params.id ?? '')
-        const { resolution } = req.body
+    async resolve(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const reportId = createReportId(req.params.id ?? '')
+            const { resolution } = req.body
 
-        if (!resolution) {
-            throw new ValidationError([
-                { field: 'resolution', message: 'Resolution is required' },
-            ])
+            if (!resolution) {
+                throw new ValidationError([
+                    { field: 'resolution', message: 'Resolution is required' },
+                ])
+            }
+
+            const resolvedBy = createUserId(req.userId ?? 'system')
+            const report = await this.reportResolver.execute({ id: reportId, resolution, resolvedBy })
+
+            res.status(HttpStatus.OK).json({ data: report })
+        } catch (error) {
+            next(error)
         }
-
-        const resolvedBy = createUserId(req.userId ?? 'system')
-        const report = await this.reportResolver.execute({ id: reportId, resolution, resolvedBy })
-
-        return res.status(HttpStatus.OK).json({
-            data: report,
-        })
     }
 
-    /**
-     * Dismiss a report
-     * POST /api/v1/reports/:id/dismiss
-     */
     @Log
-    @Catch
-    async dismiss(req: Request, res: Response, _next: NextFunction): Promise<Response> {
-        const reportId = createReportId(req.params.id ?? '')
-        const { reason } = req.body
+    async dismiss(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const reportId = createReportId(req.params.id ?? '')
+            const { reason } = req.body
 
-        if (!reason) {
-            throw new ValidationError([
-                { field: 'reason', message: 'Reason is required' },
-            ])
+            if (!reason) {
+                throw new ValidationError([
+                    { field: 'reason', message: 'Reason is required' },
+                ])
+            }
+
+            const dismissedBy = createUserId(req.userId ?? 'system')
+            const report = await this.reportDismisser.execute({ id: reportId, reason, dismissedBy })
+
+            res.status(HttpStatus.OK).json({ data: report })
+        } catch (error) {
+            next(error)
         }
-
-        const dismissedBy = createUserId(req.userId ?? 'system')
-        const report = await this.reportDismisser.execute({ id: reportId, reason, dismissedBy })
-
-        return res.status(HttpStatus.OK).json({
-            data: report,
-        })
     }
 
-    /**
-     * Get report statistics
-     * GET /api/v1/reports/stats
-     */
     @Log
-    @Catch
-    async stats(_req: Request, res: Response, _next: NextFunction): Promise<Response> {
-        const counts = await this.reportStatsRetriever.execute()
-
-        return res.status(HttpStatus.OK).json({
-            data: counts,
-        })
+    async stats(_req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const counts = await this.reportStatsRetriever.execute()
+            res.status(HttpStatus.OK).json({ data: counts })
+        } catch (error) {
+            next(error)
+        }
     }
-
-    // ============================================
-    // Private Helpers
-    // ============================================
 
     private buildReportTarget(
         targetType: string, 

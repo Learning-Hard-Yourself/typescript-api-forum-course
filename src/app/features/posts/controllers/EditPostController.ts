@@ -1,18 +1,13 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { PostEditRequest } from '@/app/features/posts/requests/PostEditRequest'
-import type { PostResource } from '@/app/features/posts/resources/PostResource'
+import { PostResource } from '@/app/features/posts/resources/PostResource'
 import type { PostEditor } from '@/app/features/posts/use-cases/PostEditor'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for editing a post.
- * PATCH /api/v1/posts/:id
- */
 export class EditPostController {
     public constructor(
         private readonly editRequest: PostEditRequest,
-        private readonly postResource: PostResource,
         private readonly postEditor: PostEditor,
         private readonly logger?: Logger,
     ) {}
@@ -34,9 +29,8 @@ export class EditPostController {
                 newContent: payload.content,
                 reason: payload.reason,
             })
-            const data = this.postResource.toResponse(post)
             this.logger?.info('Post edited', { postId, userId })
-            response.status(200).json({ data })
+            response.status(200).json(new PostResource(post).toResponse())
         } catch (error) {
             next(error)
         }

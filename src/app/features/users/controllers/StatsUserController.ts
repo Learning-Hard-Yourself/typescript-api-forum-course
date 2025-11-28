@@ -3,10 +3,6 @@ import type { NextFunction, Request, Response } from 'express'
 import type { UserStatsRetriever } from '@/app/features/users/use-cases/UserStatsRetriever'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for getting user statistics.
- * GET /api/v1/users/:id/stats
- */
 export class StatsUserController {
     public constructor(
         private readonly userStatsRetriever: UserStatsRetriever,

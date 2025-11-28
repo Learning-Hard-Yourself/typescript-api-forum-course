@@ -4,10 +4,6 @@ import { NestedPostResource } from '@/app/features/posts/resources/NestedPostRes
 import type { ThreadPostsLister } from '@/app/features/posts/use-cases/ThreadPostsLister'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for listing posts in a thread.
- * GET /api/v1/threads/:threadId/posts
- */
 export class IndexThreadPostsController {
     public constructor(
         private readonly threadPostsLister: ThreadPostsLister,
@@ -24,11 +20,9 @@ export class IndexThreadPostsController {
             }
 
             const posts = await this.threadPostsLister.execute({ threadId })
-            const nestedResource = new NestedPostResource()
-            const data = nestedResource.toJsonArray(posts)
 
             this.logger?.info('Thread posts retrieved', { threadId, count: posts.length })
-            response.status(200).json({ data })
+            response.status(200).json(NestedPostResource.fromArray(posts))
         } catch (error) {
             this.logger?.error(error as Error)
             next(error)

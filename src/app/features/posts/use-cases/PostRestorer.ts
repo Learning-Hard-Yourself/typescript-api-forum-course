@@ -1,8 +1,5 @@
-import { eq } from 'drizzle-orm'
-
+import type { PostRepository } from '@/app/features/posts/repositories/PostRepository'
 import { NotFoundError } from '@/app/shared/errors'
-import type { ForumDatabase } from '@/config/database-types'
-import { posts } from '@/config/schema'
 import type { Post } from '@/types'
 
 export interface PostRestorerInput {
@@ -10,48 +7,26 @@ export interface PostRestorerInput {
     restorerId: string
 }
 
-/**
- * Use case for restoring a soft-deleted post.
- */
 export class PostRestorer {
-    public constructor(private readonly database: ForumDatabase) {}
+    public constructor(private readonly postRepository: PostRepository) {}
 
     public async execute(input: PostRestorerInput): Promise<Post> {
         const { postId } = input
 
-        const post = await this.findPost(postId)
-
-        if (!post.isDeleted) {
-            throw new Error('Post is not deleted')
-        }
-
-        const [restored] = await this.database
-            .update(posts)
-            .set({
-                isDeleted: false,
-                deletedAt: null,
-                deletedBy: null,
-                updatedAt: new Date().toISOString(),
-            })
-            .where(eq(posts.id, postId))
-            .returning()
-
-        if (!restored) {
-            throw new Error('Failed to restore post')
-        }
-
-        return restored as Post
-    }
-
-    private async findPost(postId: string): Promise<Post> {
-        const post = await this.database.query.posts.findFirst({
-            where: eq(posts.id, postId),
-        })
+        const post = await this.postRepository.findById(postId)
 
         if (!post) {
             throw new NotFoundError(`Post with ID ${postId} not found`)
         }
 
-        return post as Post
+        if (!post.isDeleted) {
+            throw new Error('Post is not deleted')
+        }
+
+        return this.postRepository.update(postId, {
+            isDeleted: false,
+            deletedAt: null,
+            deletedBy: null,
+        })
     }
 }

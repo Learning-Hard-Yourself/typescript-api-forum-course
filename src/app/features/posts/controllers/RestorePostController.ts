@@ -1,16 +1,11 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import type { PostResource } from '@/app/features/posts/resources/PostResource'
+import { PostResource } from '@/app/features/posts/resources/PostResource'
 import type { PostRestorer } from '@/app/features/posts/use-cases/PostRestorer'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for restoring a deleted post.
- * POST /api/v1/posts/:id/restore
- */
 export class RestorePostController {
     public constructor(
-        private readonly postResource: PostResource,
         private readonly postRestorer: PostRestorer,
         private readonly logger?: Logger,
     ) {}
@@ -27,7 +22,7 @@ export class RestorePostController {
 
             const post = await this.postRestorer.execute({ postId, restorerId: userId })
             this.logger?.info('Post restored', { postId, userId })
-            response.status(200).json({ data: this.postResource.toResponse(post) })
+            response.status(200).json(new PostResource(post).toResponse())
         } catch (error) {
             next(error)
         }

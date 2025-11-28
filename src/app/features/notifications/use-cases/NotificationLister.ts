@@ -8,9 +8,6 @@ export interface NotificationListerInput {
     userId: string
 }
 
-/**
- * Use case for listing user notifications.
- */
 export class NotificationLister {
     public constructor(private readonly database: ForumDatabase) {}
 

@@ -1,17 +1,12 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import type { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
+import { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
 import type { CategoryFinder } from '@/app/features/categories/use-cases/CategoryFinder'
 import { CachePresets, headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for showing a single category.
- * GET /api/v1/categories/:id
- */
 export class ShowCategoryController {
     public constructor(
-        private readonly categoryResource: CategoryResource,
         private readonly categoryFinder: CategoryFinder,
         private readonly logger?: Logger,
     ) {}
@@ -25,13 +20,13 @@ export class ShowCategoryController {
             }
 
             const category = await this.categoryFinder.execute({ id })
-            const data = this.categoryResource.toResponse(category)
+            const resource = new CategoryResource(category)
 
             headers(response)
                 .cache(CachePresets.publicShort)
-                .etag({ data })
+                .etag({ data: resource.toArray() })
 
-            response.status(200).json({ data })
+            response.status(200).json(resource.toResponse())
         } catch (error) {
             this.logger?.error(error as Error)
             next(error)

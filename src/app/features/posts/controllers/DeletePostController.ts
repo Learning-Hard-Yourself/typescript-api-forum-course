@@ -4,10 +4,6 @@ import type { PostDeleteRequest } from '@/app/features/posts/requests/PostDelete
 import type { PostDeleter } from '@/app/features/posts/use-cases/PostDeleter'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for deleting a post (soft delete).
- * DELETE /api/v1/posts/:id
- */
 export class DeletePostController {
     public constructor(
         private readonly deleteRequest: PostDeleteRequest,

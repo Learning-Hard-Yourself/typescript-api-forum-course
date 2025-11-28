@@ -1,20 +1,15 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { PostReplyRequest } from '@/app/features/posts/requests/PostReplyRequest'
-import type { PostResource } from '@/app/features/posts/resources/PostResource'
+import { PostResource } from '@/app/features/posts/resources/PostResource'
 import type { PostReplier } from '@/app/features/posts/use-cases/PostReplier'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
 import { headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for replying to a post.
- * POST /api/v1/posts/:id/reply
- */
 export class ReplyPostController {
     public constructor(
         private readonly replyRequest: PostReplyRequest,
-        private readonly postResource: PostResource,
         private readonly postReplier: PostReplier,
         private readonly logger?: Logger,
     ) {}
@@ -35,13 +30,12 @@ export class ReplyPostController {
                 parentPostId: parentId,
                 content: payload.content,
             })
-            const data = this.postResource.toResponse(post)
             this.logger?.info('Reply created', { postId: post.id, parentId, userId })
 
             headers(response)
                 .location({ basePath: '/api/v1/posts', resourceId: post.id })
 
-            response.status(201).json({ data })
+            response.status(201).json(new PostResource(post).toResponse())
         } catch (error) {
             if (error instanceof ValidationError) {
                 this.logger?.warn('Validation failed on reply creation', { errors: error.details })

@@ -17,9 +17,6 @@ export interface ReportUpdaterInput {
     updatedBy: UserId
 }
 
-/**
- * Use case for updating a report.
- */
 export class ReportUpdater {
     private readonly store = ReportStore.getInstance()
 

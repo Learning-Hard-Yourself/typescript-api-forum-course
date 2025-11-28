@@ -15,9 +15,6 @@ export interface VoteRemoverResult {
     score: number
 }
 
-/**
- * Use case for removing a vote from a post.
- */
 export class VoteRemover {
     public constructor(private readonly database: ForumDatabase) {}
 

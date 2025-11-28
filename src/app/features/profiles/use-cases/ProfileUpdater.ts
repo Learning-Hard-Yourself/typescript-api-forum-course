@@ -10,9 +10,6 @@ export interface ProfileUpdaterInput {
     attributes: ProfileUpdateAttributes
 }
 
-/**
- * Use case for updating or creating a user profile.
- */
 export class ProfileUpdater {
     public constructor(private readonly database: ForumDatabase) {}
 

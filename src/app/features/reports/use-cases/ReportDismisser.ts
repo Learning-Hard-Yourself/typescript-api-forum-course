@@ -10,9 +10,6 @@ export interface ReportDismisserInput {
     dismissedBy: UserId
 }
 
-/**
- * Use case for dismissing a report.
- */
 export class ReportDismisser {
     private readonly updater = new ReportUpdater()
 

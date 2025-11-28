@@ -12,9 +12,6 @@ export interface PresignedUrlResult {
     key: string
 }
 
-/**
- * Use case for generating presigned URLs for file uploads.
- */
 export class PresignedUrlGenerator {
     private readonly s3: S3Client
     private readonly bucket: string

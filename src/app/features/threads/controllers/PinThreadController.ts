@@ -1,17 +1,12 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { UserRole } from '@/app/features/threads/models/ThreadUpdate'
-import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
+import { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
 import type { ThreadPinner } from '@/app/features/threads/use-cases/ThreadPinner'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for pinning a thread.
- * POST /api/v1/threads/:id/pin
- */
 export class PinThreadController {
     public constructor(
-        private readonly threadResource: ThreadResource,
         private readonly threadPinner: ThreadPinner,
         private readonly logger?: Logger,
     ) {}
@@ -26,10 +21,9 @@ export class PinThreadController {
             }
 
             const thread = await this.threadPinner.execute({ threadId: id, userRole, pin: true })
-            const data = this.threadResource.toResponse(thread)
 
             this.logger?.info('Thread pinned', { threadId: id })
-            response.json({ data })
+            response.json(new ThreadResource(thread).toResponse())
         } catch (error) {
             this.logger?.error(error as Error)
             next(error)

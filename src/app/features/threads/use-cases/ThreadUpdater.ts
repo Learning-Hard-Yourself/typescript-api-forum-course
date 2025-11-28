@@ -18,9 +18,6 @@ export interface ThreadUpdaterInput {
     updateData: ThreadUpdatePayload
 }
 
-/**
- * Use case for updating a thread's content.
- */
 export class ThreadUpdater {
     public constructor(private readonly database: ForumDatabase) {}
 

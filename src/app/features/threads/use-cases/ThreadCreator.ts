@@ -11,9 +11,6 @@ export interface ThreadCreatorInput {
     attributes: ThreadCreationAttributes
 }
 
-/**
- * Use case for creating a new thread with its initial post.
- */
 export class ThreadCreator {
     public constructor(private readonly database: ForumDatabase) {}
 

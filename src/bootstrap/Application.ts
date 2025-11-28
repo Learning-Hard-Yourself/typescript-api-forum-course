@@ -8,7 +8,7 @@ import { createErrorHandlerMiddleware } from '@/app/shared/http/middleware/Error
 import { createNotFoundMiddleware } from '@/app/shared/http/middleware/NotFoundMiddleware'
 import { requestIdMiddleware } from '@/app/shared/http/middleware/RequestIdMiddleware'
 import { createRequestLoggerMiddleware } from '@/app/shared/http/middleware/RequestLoggerMiddleware'
-import { Logger } from '@/app/shared/logging/Logger'
+import { ConsoleLogger, type Logger } from '@/app/shared/logging/Logger'
 import { registerRoutes } from '@/routes'
 import type { ApplicationDependencies } from '@/routes/types'
 
@@ -39,7 +39,7 @@ export class Application {
 
   public constructor(private readonly dependencies: ApplicationDependencies) {
     this.server = express()
-    this.logger = dependencies.logger ?? Logger.create({ name: 'forum-api' })
+    this.logger = dependencies.logger ?? ConsoleLogger.create({ name: 'forum-api' })
   }
 
   public async create(): Promise<Express> {

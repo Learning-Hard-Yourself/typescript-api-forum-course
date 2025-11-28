@@ -8,11 +8,12 @@ import { ReplyPostController } from '@/app/features/posts/controllers/ReplyPostC
 import { RestorePostController } from '@/app/features/posts/controllers/RestorePostController'
 import { ShowPostController } from '@/app/features/posts/controllers/ShowPostController'
 import { StorePostController } from '@/app/features/posts/controllers/StorePostController'
+import { DrizzlePostEditRepository } from '@/app/features/posts/repositories/DrizzlePostEditRepository'
+import { DrizzlePostRepository } from '@/app/features/posts/repositories/DrizzlePostRepository'
 import { PostCreationRequest } from '@/app/features/posts/requests/PostCreationRequest'
 import { PostDeleteRequest } from '@/app/features/posts/requests/PostDeleteRequest'
 import { PostEditRequest } from '@/app/features/posts/requests/PostEditRequest'
 import { PostReplyRequest } from '@/app/features/posts/requests/PostReplyRequest'
-import { PostResource } from '@/app/features/posts/resources/PostResource'
 import { PostCreator } from '@/app/features/posts/use-cases/PostCreator'
 import { PostDeleter } from '@/app/features/posts/use-cases/PostDeleter'
 import { PostEditor } from '@/app/features/posts/use-cases/PostEditor'
@@ -21,6 +22,7 @@ import { PostHistoryLister } from '@/app/features/posts/use-cases/PostHistoryLis
 import { PostReplier } from '@/app/features/posts/use-cases/PostReplier'
 import { PostRestorer } from '@/app/features/posts/use-cases/PostRestorer'
 import { ThreadPostsLister } from '@/app/features/posts/use-cases/ThreadPostsLister'
+import { DrizzleThreadRepository } from '@/app/features/threads/repositories/DrizzleThreadRepository'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import { rateLimiters } from '@/app/shared/http/middleware/RateLimitMiddleware'
 import { validateIdParam, validateThreadIdParam } from '@/app/shared/http/middleware/ValidateUuidMiddleware'
@@ -37,25 +39,30 @@ export class PostRoutes {
     private readonly historyController: HistoryPostController
 
     public constructor(dependencies: ApplicationDependencies) {
-        const postResource = new PostResource()
         const logger = dependencies.logger?.child({ context: 'Posts' })
 
-        const postFinder = new PostFinder(dependencies.database)
-        const postCreator = new PostCreator(dependencies.database)
-        const postReplier = new PostReplier(dependencies.database)
-        const threadPostsLister = new ThreadPostsLister(dependencies.database)
-        const postEditor = new PostEditor(dependencies.database)
-        const postDeleter = new PostDeleter(dependencies.database)
-        const postRestorer = new PostRestorer(dependencies.database)
-        const postHistoryLister = new PostHistoryLister(dependencies.database)
+        // Repositories
+        const postRepository = new DrizzlePostRepository(dependencies.database)
+        const postEditRepository = new DrizzlePostEditRepository(dependencies.database)
+        const threadRepository = new DrizzleThreadRepository(dependencies.database)
 
-        this.showController = new ShowPostController(postResource, postFinder, logger)
-        this.storeController = new StorePostController(new PostCreationRequest(), postResource, postCreator, logger)
-        this.replyController = new ReplyPostController(new PostReplyRequest(), postResource, postReplier, logger)
+        // Use cases
+        const postFinder = new PostFinder(postRepository)
+        const postCreator = new PostCreator(postRepository, threadRepository)
+        const postReplier = new PostReplier(postRepository, threadRepository)
+        const threadPostsLister = new ThreadPostsLister(postRepository, threadRepository)
+        const postEditor = new PostEditor(postRepository, postEditRepository)
+        const postDeleter = new PostDeleter(postRepository)
+        const postRestorer = new PostRestorer(postRepository)
+        const postHistoryLister = new PostHistoryLister(postRepository, postEditRepository)
+
+        this.showController = new ShowPostController(postFinder, logger)
+        this.storeController = new StorePostController(new PostCreationRequest(), postCreator, logger)
+        this.replyController = new ReplyPostController(new PostReplyRequest(), postReplier, logger)
         this.indexThreadPostsController = new IndexThreadPostsController(threadPostsLister, logger)
-        this.editController = new EditPostController(new PostEditRequest(), postResource, postEditor, logger)
+        this.editController = new EditPostController(new PostEditRequest(), postEditor, logger)
         this.deleteController = new DeletePostController(new PostDeleteRequest(), postDeleter, logger)
-        this.restoreController = new RestorePostController(postResource, postRestorer, logger)
+        this.restoreController = new RestorePostController(postRestorer, logger)
         this.historyController = new HistoryPostController(postHistoryLister, logger)
     }
 

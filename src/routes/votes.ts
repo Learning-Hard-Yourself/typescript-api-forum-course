@@ -2,7 +2,6 @@ import type { Express } from 'express'
 
 import { VotesController } from '@/app/features/votes/controllers/VotesController'
 import { VoteRequest } from '@/app/features/votes/requests/VoteRequest'
-import { VoteResource } from '@/app/features/votes/resources/VoteResource'
 import { VoteCaster } from '@/app/features/votes/use-cases/VoteCaster'
 import { VoteRemover } from '@/app/features/votes/use-cases/VoteRemover'
 import { VoteRetriever } from '@/app/features/votes/use-cases/VoteRetriever'
@@ -19,7 +18,6 @@ export class VoteRoutes {
 
         this.controller = new VotesController(
             new VoteRequest(),
-            new VoteResource(),
             voteCaster,
             voteRemover,
             voteRetriever,

@@ -1,20 +1,15 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { UserUpdateRequest } from '@/app/features/users/requests/UserUpdateRequest'
-import type { UserResource } from '@/app/features/users/resources/UserResource'
-import type { UserUpdater } from '@/app/features/users/services/UserUpdater'
+import { UserResource } from '@/app/features/users/resources/UserResource'
+import type { UserUpdater } from '@/app/features/users/use-cases/UserUpdater'
 import { NotFoundError } from '@/app/shared/errors/NotFoundError'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for updating a user profile.
- * PATCH /api/v1/users/:id
- */
 export class UpdateUserController {
     public constructor(
         private readonly updateRequest: UserUpdateRequest,
-        private readonly userResource: UserResource,
         private readonly userUpdater: UserUpdater,
         private readonly logger?: Logger,
     ) {}
@@ -29,9 +24,8 @@ export class UpdateUserController {
 
             const attributes = this.updateRequest.validate(request.body)
             const user = await this.userUpdater.execute({ id: userId, attributes })
-            const data = this.userResource.toResponse(user)
             this.logger?.info('User updated', { userId: user.id })
-            response.status(200).json({ data })
+            response.status(200).json(new UserResource(user).toResponse())
         } catch (error) {
             if (error instanceof ValidationError) {
                 this.logger?.warn('Validation failed on user update', { errors: error.details })

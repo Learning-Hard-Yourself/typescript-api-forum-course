@@ -1,23 +1,6 @@
-/**
- * Report Models - Demonstrates multiple TypeScript concepts in real use.
- * 
- * Concepts used:
- * - enum for report types and status
- * - Branded types for ReportId
- * - Discriminated unions for report content
- * - Template literal types for report identifiers
- */
-
 import type { PostId, ReportId, ThreadId, UserId } from '@/app/shared/types/branded';
 import { createReportId } from '@/app/shared/types/branded';
 
-// ============================================
-// Enums for Report Types and Status
-// ============================================
-
-/**
- * Types of reports that can be created
- */
 export enum ReportType {
     Spam = 'SPAM',
     Harassment = 'HARASSMENT',
@@ -26,9 +9,6 @@ export enum ReportType {
     Other = 'OTHER',
 }
 
-/**
- * Status of a report
- */
 export enum ReportStatus {
     Pending = 'PENDING',
     UnderReview = 'UNDER_REVIEW',
@@ -36,9 +16,6 @@ export enum ReportStatus {
     Dismissed = 'DISMISSED',
 }
 
-/**
- * Priority level for reports
- */
 export enum ReportPriority {
     Low = 1,
     Medium = 2,
@@ -46,22 +23,11 @@ export enum ReportPriority {
     Critical = 4,
 }
 
-// ============================================
-// Report Target Types (Discriminated Union)
-// ============================================
-
-/**
- * Report can target different types of content
- */
 export type ReportTarget =
     | { type: 'post'; postId: PostId; threadId: ThreadId }
     | { type: 'thread'; threadId: ThreadId }
     | { type: 'user'; userId: UserId }
     | { type: 'comment'; commentId: string; postId: PostId }
-
-// ============================================
-// Report Interface
-// ============================================
 
 export interface Report {
     readonly id: ReportId
@@ -78,10 +44,6 @@ export interface Report {
     readonly resolution: string | null
 }
 
-// ============================================
-// Report Creation DTO
-// ============================================
-
 export interface CreateReportInput {
     readonly reporterId: UserId
     readonly target: ReportTarget
@@ -90,22 +52,12 @@ export interface CreateReportInput {
     readonly priority?: ReportPriority
 }
 
-// ============================================
-// Template Literal Types for Report Identifiers
-// ============================================
-
 type ReportPrefix = 'RPT'
 type Year = `${number}${number}${number}${number}`
 type Month = `${number}${number}`
 
-/**
- * Report reference format: RPT-2024-01-001
- */
 export type ReportReference = `${ReportPrefix}-${Year}-${Month}-${string}`
 
-/**
- * Generate a report reference
- */
 export function generateReportReference(): ReportReference {
     const now = new Date()
     const year = now.getFullYear()
@@ -113,10 +65,6 @@ export function generateReportReference(): ReportReference {
     const random = Math.random().toString(36).substring(2, 5).toUpperCase()
     return `RPT-${year}-${month}-${random}` as ReportReference
 }
-
-// ============================================
-// Type Guards
-// ============================================
 
 export function isPostReport(target: ReportTarget): target is Extract<ReportTarget, { type: 'post' }> {
     return target.type === 'post'
@@ -137,10 +85,6 @@ export function isHighPriority(report: Report): boolean {
 export function isPending(report: Report): boolean {
     return report.status === ReportStatus.Pending
 }
-
-// ============================================
-// Factory Function
-// ============================================
 
 export function createReport(input: CreateReportInput): Report {
     const now = new Date().toISOString()

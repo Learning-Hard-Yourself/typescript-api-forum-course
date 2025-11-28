@@ -25,10 +25,6 @@ export function toWebRequest(req: Request, pathname: string, method?: string): R
     }) as any
 }
 
-/**
- * Apply session cookies from Better Auth response to Express response.
- * Cookies are configured as httpOnly for security (refresh token pattern).
- */
 export function applyCookies(betterAuthResponse: globalThis.Response, expressResponse: Response): void {
     const getSetCookie = (betterAuthResponse.headers as any).getSetCookie?.()
     if (Array.isArray(getSetCookie)) {
@@ -36,10 +32,6 @@ export function applyCookies(betterAuthResponse: globalThis.Response, expressRes
     }
 }
 
-/**
- * Extract Bearer access token from Better Auth response header.
- * The bearer plugin sets this in the 'set-auth-token' header.
- */
 export function extractAccessToken(betterAuthResponse: globalThis.Response): string | null {
     // Try the standard bearer plugin header first
     const headerToken = betterAuthResponse.headers.get('set-auth-token')
@@ -56,10 +48,6 @@ export function extractAccessToken(betterAuthResponse: globalThis.Response): str
     return null
 }
 
-/**
- * Extract access token from response body (session token).
- * This is used when the bearer plugin doesn't set headers.
- */
 export function extractSessionToken(body: { token?: string; session?: { token?: string } } | null): string | null {
     if (!body) return null
 

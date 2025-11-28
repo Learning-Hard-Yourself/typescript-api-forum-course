@@ -8,9 +8,9 @@
  * - Requires experimentalDecorators: true in tsconfig.json
  */
 
-import { Logger } from '@/app/shared/logging/Logger'
+import { ConsoleLogger } from '@/app/shared/logging/Logger'
 
-const logger = Logger.create({ name: 'decorator' })
+const logger = ConsoleLogger.create({ name: 'decorator' })
 
 /**
  * @Log decorator - logs method entry and exit with timing

@@ -9,9 +9,6 @@ export interface CategoryFinderInput {
     id: string
 }
 
-/**
- * Use case for finding a category by ID.
- */
 export class CategoryFinder {
     public constructor(private readonly database: ForumDatabase) {}
 

@@ -9,10 +9,10 @@
 
 import { ApplicationError } from '@/app/shared/errors/ApplicationError'
 import { HttpStatus } from '@/app/shared/http/HttpStatus'
-import { Logger } from '@/app/shared/logging/Logger'
+import { ConsoleLogger } from '@/app/shared/logging/Logger'
 import type { NextFunction, Request, Response } from 'express'
 
-const logger = Logger.create({ name: 'error-handler' })
+const logger = ConsoleLogger.create({ name: 'error-handler' })
 
 /**
  * @Catch decorator - catches errors in controller methods

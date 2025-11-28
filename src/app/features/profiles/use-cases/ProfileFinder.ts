@@ -9,9 +9,6 @@ export interface ProfileFinderInput {
     userId: string
 }
 
-/**
- * Use case for finding a user profile.
- */
 export class ProfileFinder {
     public constructor(private readonly database: ForumDatabase) {}
 

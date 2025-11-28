@@ -1,17 +1,12 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
+import { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
 import type { ThreadFinder } from '@/app/features/threads/use-cases/ThreadFinder'
 import { CachePresets, headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for showing a single thread.
- * GET /api/v1/threads/:id
- */
 export class ShowThreadController {
     public constructor(
-        private readonly threadResource: ThreadResource,
         private readonly threadFinder: ThreadFinder,
         private readonly logger?: Logger,
     ) {}
@@ -25,13 +20,13 @@ export class ShowThreadController {
             }
 
             const thread = await this.threadFinder.execute({ id })
-            const data = this.threadResource.toResponse(thread)
+            const resource = new ThreadResource(thread)
 
             headers(response)
                 .cache(CachePresets.privateShort)
-                .etag({ data })
+                .etag({ data: resource.toArray() })
 
-            response.status(200).json({ data })
+            response.status(200).json(resource.toResponse())
         } catch (error) {
             this.logger?.error(error as Error)
             next(error)

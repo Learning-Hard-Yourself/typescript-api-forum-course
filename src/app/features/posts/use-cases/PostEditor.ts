@@ -1,9 +1,6 @@
-import { eq } from 'drizzle-orm'
-import { v7 as uuidv7 } from 'uuid'
-
+import type { PostEditRepository } from '@/app/features/posts/repositories/PostEditRepository'
+import type { PostRepository } from '@/app/features/posts/repositories/PostRepository'
 import { NotFoundError } from '@/app/shared/errors'
-import type { ForumDatabase } from '@/config/database-types'
-import { postEdits, posts } from '@/config/schema'
 import type { Post } from '@/types'
 
 export interface PostEditorInput {
@@ -13,24 +10,26 @@ export interface PostEditorInput {
     reason?: string
 }
 
-/**
- * Use case for editing a post with history tracking.
- */
 export class PostEditor {
-    public constructor(private readonly database: ForumDatabase) {}
+    public constructor(
+        private readonly postRepository: PostRepository,
+        private readonly postEditRepository: PostEditRepository,
+    ) {}
 
     public async execute(input: PostEditorInput): Promise<Post> {
         const { postId, editorId, newContent, reason } = input
 
-        const post = await this.findPost(postId)
+        const post = await this.postRepository.findById(postId)
+
+        if (!post) {
+            throw new NotFoundError(`Post with ID ${postId} not found`)
+        }
 
         if (post.authorId !== editorId) {
             console.warn(`User ${editorId} editing post not authored by them`)
         }
 
-        const editId = uuidv7()
-        await this.database.insert(postEdits).values({
-            id: editId,
+        await this.postEditRepository.save({
             postId,
             editorId,
             previousContent: post.content,
@@ -39,32 +38,9 @@ export class PostEditor {
             createdAt: new Date().toISOString(),
         })
 
-        const [updated] = await this.database
-            .update(posts)
-            .set({
-                content: newContent,
-                isEdited: true,
-                updatedAt: new Date().toISOString(),
-            })
-            .where(eq(posts.id, postId))
-            .returning()
-
-        if (!updated) {
-            throw new Error('Failed to update post')
-        }
-
-        return updated as Post
-    }
-
-    private async findPost(postId: string): Promise<Post> {
-        const post = await this.database.query.posts.findFirst({
-            where: eq(posts.id, postId),
+        return this.postRepository.update(postId, {
+            content: newContent,
+            isEdited: true,
         })
-
-        if (!post) {
-            throw new NotFoundError(`Post with ID ${postId} not found`)
-        }
-
-        return post as Post
     }
 }

@@ -1,9 +1,11 @@
+import type { Logger, LogLevel } from '@/app/shared/interfaces'
+
+export type { Logger, LogLevel }
+
 export interface LoggerConfig {
   readonly name?: string
   readonly level?: LogLevel
 }
-
-export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug'
 
 interface LogEntry {
   readonly message: string
@@ -23,7 +25,7 @@ const logLevelOrder: Record<LogLevel, number> = {
 
 const defaultLevel: LogLevel = (process.env.LOG_LEVEL as LogLevel) ?? 'info'
 
-export class Logger {
+export class ConsoleLogger implements Logger {
   private readonly context: Record<string, unknown>
   private readonly level: LogLevel
   private readonly name?: string
@@ -34,12 +36,12 @@ export class Logger {
     this.name = options.name
   }
 
-  public static create(config: LoggerConfig = {}): Logger {
-    return new Logger({ level: config.level, name: config.name })
+  public static create(config: LoggerConfig = {}): ConsoleLogger {
+    return new ConsoleLogger({ level: config.level, name: config.name })
   }
 
   public child(bindings: Record<string, unknown>): Logger {
-    return new Logger({
+    return new ConsoleLogger({
       context: { ...this.context, ...bindings },
       level: this.level,
       name: this.name,

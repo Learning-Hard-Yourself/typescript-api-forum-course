@@ -1,37 +1,29 @@
-import { desc, eq } from 'drizzle-orm'
-
 import type { EditHistoryEntry, PostEdit } from '@/app/features/posts/models/PostModeration'
 import { createEditHistoryEntry } from '@/app/features/posts/models/PostModeration'
+import type { PostEditRepository } from '@/app/features/posts/repositories/PostEditRepository'
+import type { PostRepository } from '@/app/features/posts/repositories/PostRepository'
 import { NotFoundError } from '@/app/shared/errors'
-import type { ForumDatabase } from '@/config/database-types'
-import { postEdits, posts } from '@/config/schema'
 
 export interface PostHistoryListerInput {
     postId: string
 }
 
-/**
- * Use case for listing the edit history of a post.
- */
 export class PostHistoryLister {
-    public constructor(private readonly database: ForumDatabase) {}
+    public constructor(
+        private readonly postRepository: PostRepository,
+        private readonly postEditRepository: PostEditRepository,
+    ) {}
 
     public async execute(input: PostHistoryListerInput): Promise<EditHistoryEntry[]> {
         const { postId } = input
 
-        const post = await this.database.query.posts.findFirst({
-            where: eq(posts.id, postId),
-        })
+        const post = await this.postRepository.findById(postId)
 
         if (!post) {
             throw new NotFoundError(`Post with ID ${postId} not found`)
         }
 
-        const edits = await this.database
-            .select()
-            .from(postEdits)
-            .where(eq(postEdits.postId, postId))
-            .orderBy(desc(postEdits.createdAt))
+        const edits = await this.postEditRepository.findByPostId(postId)
 
         return edits.map((edit) => createEditHistoryEntry(edit as PostEdit))
     }

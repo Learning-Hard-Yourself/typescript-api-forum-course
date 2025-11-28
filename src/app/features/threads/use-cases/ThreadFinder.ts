@@ -9,21 +9,21 @@ export interface ThreadFinderInput {
     id: string
 }
 
-/**
- * Use case for finding a thread by ID.
- */
 export class ThreadFinder {
     public constructor(private readonly database: ForumDatabase) {}
 
     public async execute(input: ThreadFinderInput): Promise<Thread> {
-        const thread = await this.database.query.threads.findFirst({
-            where: eq(threads.id, input.id),
-        })
+        const thread = await this.findById(input.id)
+        if (!thread) throw new NotFoundError(`Thread with ID ${input.id} not found`)
+        return thread
+    }
 
-        if (!thread) {
-            throw new NotFoundError(`Thread with ID ${input.id} not found`)
-        }
-
-        return thread as Thread
+    private async findById(id: string): Promise<Thread | null> {
+        const [result] = await this.database
+            .select()
+            .from(threads)
+            .where(eq(threads.id, id))
+            .limit(1)
+        return (result as Thread) ?? null
     }
 }

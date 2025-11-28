@@ -4,9 +4,6 @@ import type { CreateReportInput, Report } from '../models/Report'
 import { createReport, isHighPriority } from '../models/Report'
 import { ReportStore } from './ReportStore'
 
-/**
- * Use case for creating a new report.
- */
 export class ReportCreator {
     private readonly store = ReportStore.getInstance()
 

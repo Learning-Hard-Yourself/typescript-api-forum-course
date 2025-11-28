@@ -11,9 +11,6 @@ export interface CategoryCreatorInput {
     attributes: CategoryCreationAttributes
 }
 
-/**
- * Use case for creating a new category.
- */
 export class CategoryCreator {
     public constructor(private readonly database: ForumDatabase) {}
 

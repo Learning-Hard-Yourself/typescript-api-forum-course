@@ -8,9 +8,6 @@ export interface UserStatsRetrieverInput {
     userId: string
 }
 
-/**
- * Use case for retrieving user statistics.
- */
 export class UserStatsRetriever {
     public constructor(private readonly database: ForumDatabase) {}
 

@@ -1,17 +1,12 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { UserRole } from '@/app/features/threads/models/ThreadUpdate'
-import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
+import { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
 import type { ThreadLocker } from '@/app/features/threads/use-cases/ThreadLocker'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for unlocking a thread.
- * POST /api/v1/threads/:id/unlock
- */
 export class UnlockThreadController {
     public constructor(
-        private readonly threadResource: ThreadResource,
         private readonly threadLocker: ThreadLocker,
         private readonly logger?: Logger,
     ) {}
@@ -26,10 +21,9 @@ export class UnlockThreadController {
             }
 
             const thread = await this.threadLocker.execute({ threadId: id, userRole, lock: false })
-            const data = this.threadResource.toResponse(thread)
 
             this.logger?.info('Thread unlocked', { threadId: id })
-            response.json({ data })
+            response.json(new ThreadResource(thread).toResponse())
         } catch (error) {
             this.logger?.error(error as Error)
             next(error)

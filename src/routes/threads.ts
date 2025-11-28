@@ -9,7 +9,6 @@ import { UnlockThreadController } from '@/app/features/threads/controllers/Unloc
 import { UnpinThreadController } from '@/app/features/threads/controllers/UnpinThreadController'
 import { UpdateThreadController } from '@/app/features/threads/controllers/UpdateThreadController'
 import { ThreadCreationRequest } from '@/app/features/threads/requests/ThreadCreationRequest'
-import { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
 import { ThreadCreator } from '@/app/features/threads/use-cases/ThreadCreator'
 import { ThreadCursorLister } from '@/app/features/threads/use-cases/ThreadCursorLister'
 import { ThreadFinder } from '@/app/features/threads/use-cases/ThreadFinder'
@@ -35,7 +34,6 @@ export class ThreadRoutes {
     private readonly requireOwnership: ReturnType<typeof createRequireOwnership>
 
     public constructor(dependencies: ApplicationDependencies) {
-        const threadResource = new ThreadResource()
         const logger = dependencies.logger?.child({ context: 'Threads' })
 
         const threadFinder = new ThreadFinder(dependencies.database)
@@ -46,13 +44,13 @@ export class ThreadRoutes {
         const threadCursorLister = new ThreadCursorLister(dependencies.database)
 
         this.indexController = new IndexThreadsCursorController(threadCursorLister, logger)
-        this.showController = new ShowThreadController(threadResource, threadFinder, logger)
-        this.storeController = new StoreThreadController(new ThreadCreationRequest(), threadResource, threadCreator, logger)
-        this.updateController = new UpdateThreadController(threadResource, threadUpdater, logger)
-        this.pinController = new PinThreadController(threadResource, threadPinner, logger)
-        this.unpinController = new UnpinThreadController(threadResource, threadPinner, logger)
-        this.lockController = new LockThreadController(threadResource, threadLocker, logger)
-        this.unlockController = new UnlockThreadController(threadResource, threadLocker, logger)
+        this.showController = new ShowThreadController(threadFinder, logger)
+        this.storeController = new StoreThreadController(new ThreadCreationRequest(), threadCreator, logger)
+        this.updateController = new UpdateThreadController(threadUpdater, logger)
+        this.pinController = new PinThreadController(threadPinner, logger)
+        this.unpinController = new UnpinThreadController(threadPinner, logger)
+        this.lockController = new LockThreadController(threadLocker, logger)
+        this.unlockController = new UnlockThreadController(threadLocker, logger)
         this.requireOwnership = createRequireOwnership(dependencies.database)
     }
 

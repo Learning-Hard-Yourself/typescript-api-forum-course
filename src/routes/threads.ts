@@ -8,6 +8,7 @@ import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import { rateLimiters } from '@/app/shared/http/middleware/RateLimitMiddleware'
 import { createRequireOwnership } from '@/app/shared/http/middleware/RequireOwnershipMiddleware'
 import { requireAnyRole } from '@/app/shared/http/middleware/RequireRoleMiddleware'
+import { validateIdParam } from '@/app/shared/http/middleware/ValidateUuidMiddleware'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class ThreadRoutes {
@@ -27,11 +28,12 @@ export class ThreadRoutes {
 
     public map(server: Express): void {
         server.get('/api/v1/threads', (request, response, next) => this.controller.list(request, response, next))
+        server.get('/api/v1/threads/:id', validateIdParam, (request, response, next) => this.controller.show(request, response, next))
         server.post('/api/v1/threads', authMiddleware, rateLimiters.createThread, (request, response, next) => this.controller.store(request, response, next))
-        server.patch('/api/v1/threads/:id', authMiddleware, this.requireOwnership('thread'), (request, response, next) => this.controller.update(request, response, next))
-        server.post('/api/v1/threads/:id/pin', authMiddleware, requireAnyRole('moderator', 'admin'), (request, response, next) => this.controller.pin(request, response, next))
-        server.post('/api/v1/threads/:id/unpin', authMiddleware, requireAnyRole('moderator', 'admin'), (request, response, next) => this.controller.unpin(request, response, next))
-        server.post('/api/v1/threads/:id/lock', authMiddleware, requireAnyRole('moderator', 'admin'), (request, response, next) => this.controller.lock(request, response, next))
-        server.post('/api/v1/threads/:id/unlock', authMiddleware, requireAnyRole('moderator', 'admin'), (request, response, next) => this.controller.unlock(request, response, next))
+        server.patch('/api/v1/threads/:id', authMiddleware, validateIdParam, this.requireOwnership('thread'), (request, response, next) => this.controller.update(request, response, next))
+        server.post('/api/v1/threads/:id/pin', authMiddleware, validateIdParam, requireAnyRole('moderator', 'admin'), (request, response, next) => this.controller.pin(request, response, next))
+        server.post('/api/v1/threads/:id/unpin', authMiddleware, validateIdParam, requireAnyRole('moderator', 'admin'), (request, response, next) => this.controller.unpin(request, response, next))
+        server.post('/api/v1/threads/:id/lock', authMiddleware, validateIdParam, requireAnyRole('moderator', 'admin'), (request, response, next) => this.controller.lock(request, response, next))
+        server.post('/api/v1/threads/:id/unlock', authMiddleware, validateIdParam, requireAnyRole('moderator', 'admin'), (request, response, next) => this.controller.unlock(request, response, next))
     }
 }

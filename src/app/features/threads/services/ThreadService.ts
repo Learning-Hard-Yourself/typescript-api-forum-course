@@ -20,6 +20,21 @@ import type { Thread } from '@/types'
 export class ThreadService {
     public constructor(private readonly database: ForumDatabase) { }
 
+    /**
+     * Find a thread by ID
+     */
+    public async findById(id: string): Promise<Thread> {
+        const thread = await this.database.query.threads.findFirst({
+            where: eq(threads.id, id),
+        })
+
+        if (!thread) {
+            throw new NotFoundError(`Thread with ID ${id} not found`)
+        }
+
+        return thread as Thread
+    }
+
     public async create(authorId: string, attributes: ThreadCreationAttributes): Promise<Thread> {
         const threadId = uuidv7()
         const postId = uuidv7()

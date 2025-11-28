@@ -1,14 +1,27 @@
+import { createTestApplication } from '@tests/support/createTestApplication'
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
-import { createTestApplication } from '@tests/support/createTestApplication'
 
 describe('GET /api/health', () => {
-  it('returns status ok', async () => {
+  it('returns healthy status with checks', async () => {
     const { app } = await createTestApplication()
 
     const response = await request(app).get('/api/v1/health')
 
     expect(response.statusCode).toBe(200)
-    expect(response.body).toStrictEqual({ status: 'ok' })
+    expect(response.body.status).toBe('healthy')
+    expect(response.body.checks).toBeDefined()
+    expect(response.body.checks.database).toBeDefined()
+    expect(response.body.timestamp).toBeDefined()
+    expect(response.body.uptime).toBeGreaterThanOrEqual(0)
+  })
+
+  it('returns healthy status at /health endpoint', async () => {
+    const { app } = await createTestApplication()
+
+    const response = await request(app).get('/health')
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.status).toBe('healthy')
   })
 })

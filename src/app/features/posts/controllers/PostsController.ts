@@ -23,6 +23,23 @@ export class PostsController {
         private readonly logger?: Logger,
     ) { }
 
+    public async show(request: Request, response: Response, next: NextFunction): Promise<void> {
+        try {
+            const { id } = request.params
+            if (!id) {
+                response.status(400).json({ message: 'Post ID is required' })
+                return
+            }
+
+            const post = await this.postService.findById(id)
+            const data = this.postResource.toResponse(post)
+            response.status(200).json({ data })
+        } catch (error) {
+            this.logger?.error(error as Error)
+            next(error)
+        }
+    }
+
     public async store(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const userId = request.user!.id

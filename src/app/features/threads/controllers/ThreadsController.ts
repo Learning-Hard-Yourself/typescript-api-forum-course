@@ -17,6 +17,23 @@ export class ThreadsController {
         private readonly logger?: Logger,
     ) { }
 
+    public async show(request: Request, response: Response, next: NextFunction): Promise<void> {
+        try {
+            const { id } = request.params
+            if (!id) {
+                response.status(400).json({ message: 'Thread ID is required' })
+                return
+            }
+
+            const thread = await this.threadService.findById(id)
+            const data = this.threadResource.toResponse(thread)
+            response.status(200).json({ data })
+        } catch (error) {
+            this.logger?.error(error as Error)
+            next(error)
+        }
+    }
+
     public async store(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const userId = request.user!.id

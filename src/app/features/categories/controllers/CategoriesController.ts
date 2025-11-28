@@ -26,6 +26,23 @@ export class CategoriesController {
         }
     }
 
+    public async show(request: Request, response: Response, next: NextFunction): Promise<void> {
+        try {
+            const { id } = request.params
+            if (!id) {
+                response.status(400).json({ message: 'Category ID is required' })
+                return
+            }
+
+            const category = await this.categoryService.findById(id)
+            const data = this.categoryResource.toResponse(category)
+            response.status(200).json({ data })
+        } catch (error) {
+            this.logger?.error(error as Error)
+            next(error)
+        }
+    }
+
     public async store(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const attributes = this.creationRequest.validate(request.body)

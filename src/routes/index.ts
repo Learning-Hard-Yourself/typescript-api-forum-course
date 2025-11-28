@@ -14,7 +14,7 @@ import { UserRoutes } from '@/routes/users'
 import { VoteRoutes } from '@/routes/votes'
 
 export const registerRoutes = (server: Express, dependencies: ApplicationDependencies): void => {
-  new HealthRoutes().map(server)
+  new HealthRoutes(dependencies).map(server)
   new AuthRoutes(dependencies).map(server)
   new UserRoutes(dependencies).map(server)
   new ProfileRoutes(dependencies).map(server)

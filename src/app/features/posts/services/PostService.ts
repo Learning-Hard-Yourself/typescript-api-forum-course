@@ -12,7 +12,22 @@ import type { Post } from '@/types'
 export class PostService {
     public constructor(private readonly database: ForumDatabase) { }
 
+    /**
+     * Find a post by ID
+     */
+    public async findById(id: string): Promise<Post> {
+        const [post] = await this.database
+            .select()
+            .from(posts)
+            .where(eq(posts.id, id))
+            .limit(1)
 
+        if (!post) {
+            throw new NotFoundError(`Post with ID ${id} not found`)
+        }
+
+        return post as Post
+    }
 
     public async createPost(authorId: string, attributes: PostCreationAttributes): Promise<Post> {
         const id = uuidv7()

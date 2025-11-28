@@ -1,14 +1,49 @@
 import { asc, eq } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 
-import { ConflictError } from '@/app/shared/errors/ConflictError'
 import type { CategoryCreationAttributes } from '@/app/features/categories/requests/CategoryCreationRequest'
-import { categories } from '@/config/schema'
+import { ConflictError } from '@/app/shared/errors/ConflictError'
+import { NotFoundError } from '@/app/shared/errors/NotFoundError'
 import type { ForumDatabase } from '@/config/database-types'
+import { categories } from '@/config/schema'
 import type { Category } from '@/types'
 
 export class CategoryService {
     public constructor(private readonly database: ForumDatabase) { }
+
+    /**
+     * Find a category by ID
+     */
+    public async findById(id: string): Promise<Category> {
+        const [category] = await this.database
+            .select()
+            .from(categories)
+            .where(eq(categories.id, id))
+            .limit(1)
+
+        if (!category) {
+            throw new NotFoundError(`Category with ID ${id} not found`)
+        }
+
+        return category as Category
+    }
+
+    /**
+     * Find a category by slug
+     */
+    public async findBySlug(slug: string): Promise<Category> {
+        const [category] = await this.database
+            .select()
+            .from(categories)
+            .where(eq(categories.slug, slug))
+            .limit(1)
+
+        if (!category) {
+            throw new NotFoundError(`Category with slug '${slug}' not found`)
+        }
+
+        return category as Category
+    }
 
     public async create(attributes: CategoryCreationAttributes): Promise<Category> {
         const [existing] = await this.database

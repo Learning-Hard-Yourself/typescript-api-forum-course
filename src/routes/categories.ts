@@ -4,6 +4,9 @@ import { CategoriesController } from '@/app/features/categories/controllers/Cate
 import { CategoryCreationRequest } from '@/app/features/categories/requests/CategoryCreationRequest'
 import { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
 import { CategoryService } from '@/app/features/categories/services/CategoryService'
+import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
+import { requireAnyRole } from '@/app/shared/http/middleware/RequireRoleMiddleware'
+import { validateIdParam } from '@/app/shared/http/middleware/ValidateUuidMiddleware'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class CategoryRoutes {
@@ -21,6 +24,7 @@ export class CategoryRoutes {
 
     public map(server: Express): void {
         server.get('/api/v1/categories', (request, response, next) => this.controller.index(request, response, next))
-        server.post('/api/v1/categories', (request, response, next) => this.controller.store(request, response, next))
+        server.get('/api/v1/categories/:id', validateIdParam, (request, response, next) => this.controller.show(request, response, next))
+        server.post('/api/v1/categories', authMiddleware, requireAnyRole('admin'), (request, response, next) => this.controller.store(request, response, next))
     }
 }

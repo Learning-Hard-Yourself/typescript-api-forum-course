@@ -3,18 +3,19 @@ import type { Express } from 'express'
 import { AttachmentsController } from '@/app/features/attachments/controllers/AttachmentsController'
 import { AttachmentCreationRequest } from '@/app/features/attachments/requests/AttachmentCreationRequest'
 import { AttachmentResource } from '@/app/features/attachments/resources/AttachmentResource'
-import { AttachmentService } from '@/app/features/attachments/services/AttachmentService'
+import { AttachmentCreator } from '@/app/features/attachments/use-cases/AttachmentCreator'
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class AttachmentRoutes {
     private readonly controller: AttachmentsController
 
     public constructor(dependencies: ApplicationDependencies) {
-        const attachmentService = new AttachmentService(dependencies.database)
+        const attachmentCreator = new AttachmentCreator(dependencies.database)
+
         this.controller = new AttachmentsController(
             new AttachmentCreationRequest(),
             new AttachmentResource(),
-            attachmentService,
+            attachmentCreator,
             dependencies.logger?.child({ context: 'AttachmentsController' }),
         )
     }

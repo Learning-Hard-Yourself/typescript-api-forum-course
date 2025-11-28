@@ -8,7 +8,12 @@
  */
 
 import { ReportsController } from '@/app/features/reports/controllers/ReportsController'
-import { ReportService } from '@/app/features/reports/services/ReportService'
+import { ReportCreator } from '@/app/features/reports/use-cases/ReportCreator'
+import { ReportDismisser } from '@/app/features/reports/use-cases/ReportDismisser'
+import { ReportFinder } from '@/app/features/reports/use-cases/ReportFinder'
+import { ReportLister } from '@/app/features/reports/use-cases/ReportLister'
+import { ReportResolver } from '@/app/features/reports/use-cases/ReportResolver'
+import { ReportStatsRetriever } from '@/app/features/reports/use-cases/ReportStatsRetriever'
 import {
     MiddlewarePipeline,
     authMiddleware,
@@ -57,9 +62,22 @@ export class ReportRoutes {
     private readonly controller: ReportsController
     private readonly basePath: BaseReportRoute = '/api/v1/reports'
 
-    constructor(private readonly dependencies: ApplicationDependencies) {
-        const service = new ReportService(dependencies.database)
-        this.controller = new ReportsController(service)
+    constructor(_dependencies: ApplicationDependencies) {
+        const reportCreator = new ReportCreator()
+        const reportFinder = new ReportFinder()
+        const reportLister = new ReportLister()
+        const reportResolver = new ReportResolver()
+        const reportDismisser = new ReportDismisser()
+        const reportStatsRetriever = new ReportStatsRetriever()
+
+        this.controller = new ReportsController(
+            reportCreator,
+            reportFinder,
+            reportLister,
+            reportResolver,
+            reportDismisser,
+            reportStatsRetriever,
+        )
     }
 
     public map(server: Express): void {

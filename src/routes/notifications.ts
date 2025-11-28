@@ -1,6 +1,8 @@
 import type { Express } from 'express'
 
 import { NotificationsController } from '@/app/features/notifications/controllers/NotificationsController'
+import { NotificationLister } from '@/app/features/notifications/use-cases/NotificationLister'
+import { NotificationMarker } from '@/app/features/notifications/use-cases/NotificationMarker'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import type { ApplicationDependencies } from '@/routes/types'
 
@@ -8,8 +10,12 @@ export class NotificationRoutes {
     private readonly controller: NotificationsController
 
     public constructor(dependencies: ApplicationDependencies) {
+        const notificationLister = new NotificationLister(dependencies.database)
+        const notificationMarker = new NotificationMarker(dependencies.database)
+
         this.controller = new NotificationsController(
-            dependencies.database,
+            notificationLister,
+            notificationMarker,
             dependencies.logger?.child({ context: 'NotificationsController' }),
         )
     }

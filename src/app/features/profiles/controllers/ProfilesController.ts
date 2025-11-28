@@ -2,7 +2,8 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { ProfileUpdateRequest } from '@/app/features/profiles/requests/ProfileUpdateRequest'
 import type { ProfileResource } from '@/app/features/profiles/resources/ProfileResource'
-import type { ProfileService } from '@/app/features/profiles/services/ProfileService'
+import type { ProfileFinder } from '@/app/features/profiles/use-cases/ProfileFinder'
+import type { ProfileUpdater } from '@/app/features/profiles/use-cases/ProfileUpdater'
 import { NotFoundError } from '@/app/shared/errors/NotFoundError'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { Logger } from '@/app/shared/logging/Logger'
@@ -11,9 +12,10 @@ export class ProfilesController {
     public constructor(
         private readonly updateRequest: ProfileUpdateRequest,
         private readonly profileResource: ProfileResource,
-        private readonly profileService: ProfileService,
+        private readonly profileFinder: ProfileFinder,
+        private readonly profileUpdater: ProfileUpdater,
         private readonly logger?: Logger,
-    ) { }
+    ) {}
 
     public async show(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
@@ -21,7 +23,7 @@ export class ProfilesController {
             if (!userId) {
                 throw new Error('User ID is required')
             }
-            const profile = await this.profileService.getByUserId(userId)
+            const profile = await this.profileFinder.execute({ userId })
             const data = this.profileResource.toResponse(profile)
             response.status(200).json({ data })
         } catch (error) {
@@ -41,7 +43,7 @@ export class ProfilesController {
                 throw new Error('User ID is required')
             }
             const attributes = this.updateRequest.validate(request.body)
-            const profile = await this.profileService.update(userId, attributes)
+            const profile = await this.profileUpdater.execute({ userId, attributes })
             const data = this.profileResource.toResponse(profile)
             this.logger?.info('Profile updated', { userId })
             response.status(200).json({ data })

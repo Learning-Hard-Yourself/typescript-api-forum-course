@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import type { PostModerationService } from '@/app/features/posts/services/PostModerationService'
+import type { PostResource } from '@/app/features/posts/resources/PostResource'
+import type { PostRestorer } from '@/app/features/posts/use-cases/PostRestorer'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -9,7 +10,8 @@ import type { Logger } from '@/app/shared/logging/Logger'
  */
 export class RestorePostController {
     public constructor(
-        private readonly moderationService: PostModerationService,
+        private readonly postResource: PostResource,
+        private readonly postRestorer: PostRestorer,
         private readonly logger?: Logger,
     ) {}
 
@@ -23,9 +25,9 @@ export class RestorePostController {
                 return
             }
 
-            await this.moderationService.restorePost(postId, userId)
+            const post = await this.postRestorer.execute({ postId, restorerId: userId })
             this.logger?.info('Post restored', { postId, userId })
-            response.status(200).json({ data: await this.moderationService.getPostWithHistory(postId) })
+            response.status(200).json({ data: this.postResource.toResponse(post) })
         } catch (error) {
             next(error)
         }

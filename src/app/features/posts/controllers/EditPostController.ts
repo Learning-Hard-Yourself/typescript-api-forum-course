@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { PostEditRequest } from '@/app/features/posts/requests/PostEditRequest'
 import type { PostResource } from '@/app/features/posts/resources/PostResource'
-import type { PostModerationService } from '@/app/features/posts/services/PostModerationService'
+import type { PostEditor } from '@/app/features/posts/use-cases/PostEditor'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -13,7 +13,7 @@ export class EditPostController {
     public constructor(
         private readonly editRequest: PostEditRequest,
         private readonly postResource: PostResource,
-        private readonly moderationService: PostModerationService,
+        private readonly postEditor: PostEditor,
         private readonly logger?: Logger,
     ) {}
 
@@ -28,7 +28,12 @@ export class EditPostController {
             }
 
             const payload = this.editRequest.validate(request.body)
-            const post = await this.moderationService.editPost(postId, userId, payload.content, payload.reason)
+            const post = await this.postEditor.execute({
+                postId,
+                editorId: userId,
+                newContent: payload.content,
+                reason: payload.reason,
+            })
             const data = this.postResource.toResponse(post)
             this.logger?.info('Post edited', { postId, userId })
             response.status(200).json({ data })

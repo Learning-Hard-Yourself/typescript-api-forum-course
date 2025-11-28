@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import type { UserStatsService } from '@/app/features/users/services/UserStatsService'
+import type { UserStatsRetriever } from '@/app/features/users/use-cases/UserStatsRetriever'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -9,7 +9,7 @@ import type { Logger } from '@/app/shared/logging/Logger'
  */
 export class StatsUserController {
     public constructor(
-        private readonly userStatsService: UserStatsService,
+        private readonly userStatsRetriever: UserStatsRetriever,
         private readonly logger?: Logger,
     ) {}
 
@@ -21,7 +21,7 @@ export class StatsUserController {
                 return
             }
 
-            const stats = await this.userStatsService.getUserStats(userId)
+            const stats = await this.userStatsRetriever.execute({ userId })
 
             this.logger?.info('User stats retrieved', { userId })
             response.status(200).json({ data: stats })

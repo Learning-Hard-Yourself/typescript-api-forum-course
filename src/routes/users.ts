@@ -4,8 +4,8 @@ import { StatsUserController } from '@/app/features/users/controllers/StatsUserC
 import { UpdateUserController } from '@/app/features/users/controllers/UpdateUserController'
 import { UserUpdateRequest } from '@/app/features/users/requests/UserUpdateRequest'
 import { UserResource } from '@/app/features/users/resources/UserResource'
-import { UserStatsService } from '@/app/features/users/services/UserStatsService'
-import { UserUpdater } from '@/app/features/users/services/UserUpdater'
+import { UserStatsRetriever } from '@/app/features/users/use-cases/UserStatsRetriever'
+import { UserUpdater } from '@/app/features/users/use-cases/UserUpdater'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import { createRequireOwnership } from '@/app/shared/http/middleware/RequireOwnershipMiddleware'
 import type { ApplicationDependencies } from '@/routes/types'
@@ -17,11 +17,11 @@ export class UserRoutes {
 
     public constructor(dependencies: ApplicationDependencies) {
         const userUpdater = new UserUpdater(dependencies.database)
-        const userStatsService = new UserStatsService(dependencies.database)
+        const userStatsRetriever = new UserStatsRetriever(dependencies.database)
         const logger = dependencies.logger?.child({ context: 'Users' })
 
         this.updateController = new UpdateUserController(new UserUpdateRequest(), new UserResource(), userUpdater, logger)
-        this.statsController = new StatsUserController(userStatsService, logger)
+        this.statsController = new StatsUserController(userStatsRetriever, logger)
         this.requireOwnership = createRequireOwnership(dependencies.database)
     }
 

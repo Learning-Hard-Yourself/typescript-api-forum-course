@@ -13,10 +13,13 @@ import { PostDeleteRequest } from '@/app/features/posts/requests/PostDeleteReque
 import { PostEditRequest } from '@/app/features/posts/requests/PostEditRequest'
 import { PostReplyRequest } from '@/app/features/posts/requests/PostReplyRequest'
 import { PostResource } from '@/app/features/posts/resources/PostResource'
-import { PostModerationService } from '@/app/features/posts/services/PostModerationService'
 import { PostCreator } from '@/app/features/posts/use-cases/PostCreator'
+import { PostDeleter } from '@/app/features/posts/use-cases/PostDeleter'
+import { PostEditor } from '@/app/features/posts/use-cases/PostEditor'
 import { PostFinder } from '@/app/features/posts/use-cases/PostFinder'
+import { PostHistoryLister } from '@/app/features/posts/use-cases/PostHistoryLister'
 import { PostReplier } from '@/app/features/posts/use-cases/PostReplier'
+import { PostRestorer } from '@/app/features/posts/use-cases/PostRestorer'
 import { ThreadPostsLister } from '@/app/features/posts/use-cases/ThreadPostsLister'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import { rateLimiters } from '@/app/shared/http/middleware/RateLimitMiddleware'
@@ -34,7 +37,6 @@ export class PostRoutes {
     private readonly historyController: HistoryPostController
 
     public constructor(dependencies: ApplicationDependencies) {
-        const moderationService = new PostModerationService(dependencies.database)
         const postResource = new PostResource()
         const logger = dependencies.logger?.child({ context: 'Posts' })
 
@@ -43,15 +45,19 @@ export class PostRoutes {
         const postCreator = new PostCreator(dependencies.database)
         const postReplier = new PostReplier(dependencies.database)
         const threadPostsLister = new ThreadPostsLister(dependencies.database)
+        const postEditor = new PostEditor(dependencies.database)
+        const postDeleter = new PostDeleter(dependencies.database)
+        const postRestorer = new PostRestorer(dependencies.database)
+        const postHistoryLister = new PostHistoryLister(dependencies.database)
 
         this.showController = new ShowPostController(postResource, postFinder, logger)
         this.storeController = new StorePostController(new PostCreationRequest(), postResource, postCreator, logger)
         this.replyController = new ReplyPostController(new PostReplyRequest(), postResource, postReplier, logger)
         this.indexThreadPostsController = new IndexThreadPostsController(threadPostsLister, logger)
-        this.editController = new EditPostController(new PostEditRequest(), postResource, moderationService, logger)
-        this.deleteController = new DeletePostController(new PostDeleteRequest(), moderationService, logger)
-        this.restoreController = new RestorePostController(moderationService, logger)
-        this.historyController = new HistoryPostController(moderationService, logger)
+        this.editController = new EditPostController(new PostEditRequest(), postResource, postEditor, logger)
+        this.deleteController = new DeletePostController(new PostDeleteRequest(), postDeleter, logger)
+        this.restoreController = new RestorePostController(postResource, postRestorer, logger)
+        this.historyController = new HistoryPostController(postHistoryLister, logger)
     }
 
     public map(server: Express): void {

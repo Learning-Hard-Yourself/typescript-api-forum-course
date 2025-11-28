@@ -3,7 +3,8 @@ import type { Express } from 'express'
 import { ProfilesController } from '@/app/features/profiles/controllers/ProfilesController'
 import { ProfileUpdateRequest } from '@/app/features/profiles/requests/ProfileUpdateRequest'
 import { ProfileResource } from '@/app/features/profiles/resources/ProfileResource'
-import { ProfileService } from '@/app/features/profiles/services/ProfileService'
+import { ProfileFinder } from '@/app/features/profiles/use-cases/ProfileFinder'
+import { ProfileUpdater } from '@/app/features/profiles/use-cases/ProfileUpdater'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import { createRequireOwnership } from '@/app/shared/http/middleware/RequireOwnershipMiddleware'
 import type { ApplicationDependencies } from '@/routes/types'
@@ -13,11 +14,14 @@ export class ProfileRoutes {
     private readonly requireOwnership: ReturnType<typeof createRequireOwnership>
 
     public constructor(dependencies: ApplicationDependencies) {
-        const profileService = new ProfileService(dependencies.database)
+        const profileFinder = new ProfileFinder(dependencies.database)
+        const profileUpdater = new ProfileUpdater(dependencies.database)
+
         this.controller = new ProfilesController(
             new ProfileUpdateRequest(),
             new ProfileResource(),
-            profileService,
+            profileFinder,
+            profileUpdater,
             dependencies.logger?.child({ context: 'ProfilesController' }),
         )
         this.requireOwnership = createRequireOwnership(dependencies.database)

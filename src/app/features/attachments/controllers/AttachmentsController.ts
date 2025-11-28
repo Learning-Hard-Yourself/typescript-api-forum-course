@@ -1,18 +1,21 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { AttachmentCreationRequest } from '@/app/features/attachments/requests/AttachmentCreationRequest'
 import type { AttachmentResource } from '@/app/features/attachments/resources/AttachmentResource'
+import type { AttachmentCreator } from '@/app/features/attachments/use-cases/AttachmentCreator'
+import { PresignedUrlGenerator } from '@/app/features/attachments/use-cases/PresignedUrlGenerator'
+import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { Logger } from '@/app/shared/logging/Logger'
-import type { AttachmentService } from '@/app/features/attachments/services/AttachmentService'
 
 export class AttachmentsController {
+    private readonly presignedUrlGenerator = new PresignedUrlGenerator()
+
     public constructor(
         private readonly creationRequest: AttachmentCreationRequest,
         private readonly attachmentResource: AttachmentResource,
-        private readonly attachmentService: AttachmentService,
+        private readonly attachmentCreator: AttachmentCreator,
         private readonly logger?: Logger,
-    ) { }
+    ) {}
 
     public async sign(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
@@ -21,7 +24,7 @@ export class AttachmentsController {
                 throw new ValidationError([{ field: 'body', message: 'filename and mimeType are required' }])
             }
 
-            const { url, key } = await this.attachmentService.generatePresignedUrl(filename, mimeType)
+            const { url, key } = await this.presignedUrlGenerator.execute({ filename, mimeType })
             response.status(200).json({ url, key })
         } catch (error) {
             this.logger?.error(error as Error)
@@ -38,7 +41,7 @@ export class AttachmentsController {
                 throw new ValidationError([{ field: 'url', message: 'URL is required' }])
             }
 
-            const attachment = await this.attachmentService.create({ ...attributes, url })
+            const attachment = await this.attachmentCreator.execute({ attributes: { ...attributes, url } })
             const data = this.attachmentResource.toResponse(attachment)
             this.logger?.info('Attachment created', { attachmentId: attachment.id })
             response.status(201).json({ data })

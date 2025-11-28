@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import type { PostModerationService } from '@/app/features/posts/services/PostModerationService'
+import type { PostHistoryLister } from '@/app/features/posts/use-cases/PostHistoryLister'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -9,7 +9,7 @@ import type { Logger } from '@/app/shared/logging/Logger'
  */
 export class HistoryPostController {
     public constructor(
-        private readonly moderationService: PostModerationService,
+        private readonly postHistoryLister: PostHistoryLister,
         private readonly logger?: Logger,
     ) {}
 
@@ -22,7 +22,7 @@ export class HistoryPostController {
                 return
             }
 
-            const history = await this.moderationService.getEditHistory(id)
+            const history = await this.postHistoryLister.execute({ postId: id })
 
             this.logger?.info('Edit history retrieved', { postId: id, editCount: history.length })
             res.json({ data: history })

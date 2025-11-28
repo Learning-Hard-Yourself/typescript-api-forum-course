@@ -19,15 +19,26 @@ import type {
     ReportTarget,
 } from '../models/Report'
 import { ReportPriority, ReportStatus, ReportType } from '../models/Report'
-import type { ReportFilters } from '../services/ReportService'
-import { ReportService } from '../services/ReportService'
+import type { ReportCreator } from '../use-cases/ReportCreator'
+import type { ReportDismisser } from '../use-cases/ReportDismisser'
+import type { ReportFinder } from '../use-cases/ReportFinder'
+import type { ReportFilters, ReportLister } from '../use-cases/ReportLister'
+import type { ReportResolver } from '../use-cases/ReportResolver'
+import type { ReportStatsRetriever } from '../use-cases/ReportStatsRetriever'
 
 // ============================================
 // Controller Class
 // ============================================
 
 export class ReportsController {
-    constructor(private readonly reportService: ReportService) {}
+    constructor(
+        private readonly reportCreator: ReportCreator,
+        private readonly reportFinder: ReportFinder,
+        private readonly reportLister: ReportLister,
+        private readonly reportResolver: ReportResolver,
+        private readonly reportDismisser: ReportDismisser,
+        private readonly reportStatsRetriever: ReportStatsRetriever,
+    ) {}
 
     /**
      * Create a new report
@@ -56,7 +67,7 @@ export class ReportsController {
             priority: priority ? this.parsePriority(priority) : undefined,
         }
 
-        const report = await this.reportService.create(input)
+        const report = await this.reportCreator.execute(input)
 
         return res.status(HttpStatus.Created).json({
             data: report,
@@ -87,7 +98,7 @@ export class ReportsController {
             filters.reporterId = createUserId(reporterId)
         }
 
-        const reports = await this.reportService.findAll(filters)
+        const reports = await this.reportLister.execute(filters)
 
         return res.status(HttpStatus.OK).json({
             data: reports,
@@ -105,7 +116,7 @@ export class ReportsController {
     @Catch
     async show(req: Request, res: Response, _next: NextFunction): Promise<Response> {
         const reportId = createReportId(req.params.id ?? '')
-        const report = await this.reportService.findById(reportId)
+        const report = await this.reportFinder.execute({ id: reportId })
 
         if (!report) {
             throw new NotFoundError('Report not found', { reportId })
@@ -133,7 +144,7 @@ export class ReportsController {
         }
 
         const resolvedBy = createUserId(req.userId ?? 'system')
-        const report = await this.reportService.resolve(reportId, resolution, resolvedBy)
+        const report = await this.reportResolver.execute({ id: reportId, resolution, resolvedBy })
 
         return res.status(HttpStatus.OK).json({
             data: report,
@@ -157,7 +168,7 @@ export class ReportsController {
         }
 
         const dismissedBy = createUserId(req.userId ?? 'system')
-        const report = await this.reportService.dismiss(reportId, reason, dismissedBy)
+        const report = await this.reportDismisser.execute({ id: reportId, reason, dismissedBy })
 
         return res.status(HttpStatus.OK).json({
             data: report,
@@ -171,7 +182,7 @@ export class ReportsController {
     @Log
     @Catch
     async stats(_req: Request, res: Response, _next: NextFunction): Promise<Response> {
-        const counts = await this.reportService.countByStatus()
+        const counts = await this.reportStatsRetriever.execute()
 
         return res.status(HttpStatus.OK).json({
             data: counts,

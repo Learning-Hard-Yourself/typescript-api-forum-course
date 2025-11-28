@@ -1,14 +1,21 @@
 import { count, eq, sql } from 'drizzle-orm'
 
-import type { UserStats, UserWithStats } from '@/app/features/users/models/UserStats'
+import type { UserStats } from '@/app/features/users/models/UserStats'
 import type { ForumDatabase } from '@/config/database-types'
 import { posts, threads, users } from '@/config/schema'
 
-export class UserStatsService {
-    constructor(private readonly database: ForumDatabase) { }
+export interface UserStatsRetrieverInput {
+    userId: string
+}
 
+/**
+ * Use case for retrieving user statistics.
+ */
+export class UserStatsRetriever {
+    public constructor(private readonly database: ForumDatabase) {}
 
-    async getUserStats(userId: string): Promise<UserStats> {
+    public async execute(input: UserStatsRetrieverInput): Promise<UserStats> {
+        const { userId } = input
 
         const [threadResult] = await this.database
             .select({ count: count() })
@@ -41,20 +48,6 @@ export class UserStatsService {
             postCount,
             reputation,
             lastActive: user?.lastActiveAt ?? null,
-        }
-    }
-
-
-    async getUserWithStats(userId: string): Promise<UserWithStats | null> {
-        const [user] = await this.database.select().from(users).where(eq(users.id, userId))
-
-        if (!user) return null
-
-        const stats = await this.getUserStats(userId)
-
-        return {
-            ...user,
-            stats,
         }
     }
 }

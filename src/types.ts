@@ -59,6 +59,8 @@ export interface Post {
     voteScore: number
     isEdited: boolean
     isDeleted: boolean
+    deletedAt: string | null
+    deletedBy: string | null
     createdAt: string
     updatedAt: string
     author?: User

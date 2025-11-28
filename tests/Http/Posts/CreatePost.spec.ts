@@ -61,6 +61,10 @@ describe('POST /api/posts', () => {
             content: 'This is a reply.',
         })
 
+        // Verify HTTP headers
+        expect(response.headers['location']).toBe(`/api/v1/posts/${response.body.data.id}`)
+        expect(response.headers['x-request-id']).toBeDefined()
+
         // Verify Post
         const [post] = await context.database.select().from(posts).where(eq(posts.id, response.body.data.id))
         expect(post).toBeDefined()

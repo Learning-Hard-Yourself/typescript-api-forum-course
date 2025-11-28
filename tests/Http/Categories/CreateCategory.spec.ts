@@ -48,6 +48,10 @@ describe('POST /api/categories', () => {
             slug: 'general-discussion',
         })
 
+        // Verify HTTP headers
+        expect(response.headers['location']).toBe(`/api/v1/categories/${response.body.data.id}`)
+        expect(response.headers['x-request-id']).toBeDefined()
+
         const [category] = await context.database.select().from(categories).where(eq(categories.slug, 'general-discussion'))
         expect(category).toBeDefined()
         expect(category.name).toBe('General Discussion')

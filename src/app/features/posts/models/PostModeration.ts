@@ -1,5 +1,3 @@
-
-
 import type { Post } from '@/types'
 
 export type EditHistoryEntry = [
@@ -10,25 +8,9 @@ export type EditHistoryEntry = [
     reason: string | null,
 ]
 
-const exampleEdit: EditHistoryEntry = [
-    '2024-03-20T12:00:00Z',
-    'usr_123',
-    'Old content',
-    'New content',
-    'Fixed typo',
-]
-
-const timestamp: string = exampleEdit[0]
-const editorId: string = exampleEdit[1]
-
 export type ModerationEvent = [action: 'edit' | 'delete' | 'restore', targetId: string, moderatorId: string, reason?: string]
 
 export type ReadonlyEditEntry = readonly [string, string, string, string, string | null]
-
-const regularArray: string[] = ['a', 'b', 'c']
-regularArray.push('d')
-
-const tuple: [string, number] = ['a', 1]
 
 export type EditTimestamp = EditHistoryEntry[0]
 export type EditorId = EditHistoryEntry[1]
@@ -36,10 +18,7 @@ export type PreviousContent = EditHistoryEntry[2]
 
 export type TupleElement<T extends readonly unknown[]> = T[number]
 
-type AnyEditField = TupleElement<EditHistoryEntry>
-
 export type TupleLength<T extends readonly unknown[]> = T['length']
-type EditEntryLength = TupleLength<EditHistoryEntry>
 
 export type PostStatus =
     | 'active'
@@ -124,43 +103,3 @@ export function isSameEdit(a: EditHistoryEntry, b: EditHistoryEntry): boolean {
     )
 }
 
-function getEditInfo(edit: PostEdit): [string, number, number] {
-    const contentLength = edit.newContent.length
-    const diff = edit.newContent.length - edit.previousContent.length
-
-    return [edit.createdAt, contentLength, diff]
-}
-
-const [editTime, length, difference] = getEditInfo({
-    id: '1',
-    postId: 'p1',
-    editorId: 'u1',
-    previousContent: 'old',
-    newContent: 'new content',
-    editReason: null,
-    createdAt: '2024-03-20',
-})
-
-function handleModerationState(state: PostModerationState) {
-    switch (state.status) {
-        case 'active':
-
-            console.log('Post is active:', state.post.id)
-            break
-
-        case 'edited':
-
-            console.log(`Post edited ${state.editCount} times`)
-            break
-
-        case 'deleted':
-
-            console.log(`Deleted at ${state.deletedAt} by ${state.deletedBy}`)
-            break
-
-        case 'restored':
-
-            console.log(`Restored at ${state.restoredAt}`)
-            break
-    }
-}

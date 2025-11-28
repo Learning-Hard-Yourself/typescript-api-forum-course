@@ -1,50 +1,8 @@
 /**
- * Advanced Utility Types.
- * 
- * TypeScript Concepts:
- * - ReturnType<T> - extracts return type of a function
- * - Parameters<T> - extracts parameter types as a tuple
- * - Awaited<T> - unwraps Promise types
- * - NonNullable<T> - removes null and undefined
- * - Exclude<T, U> - removes types from a union
- * - ConstructorParameters<T> - extracts constructor parameter types
- * - InstanceType<T> - extracts instance type from a class
+ * Reusable Utility Types for the Forum API.
  */
 
-// ============================================
-// Re-export built-in utility types with examples
-// ============================================
-
-/**
- * Example function for demonstrating ReturnType and Parameters
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function exampleAsyncFunction(
-    userId: string,
-    _options: { includeDeleted: boolean },
-): Promise<{ id: string; name: string } | null> {
-    return { id: userId, name: 'Example' }
-}
-
-// ReturnType extracts the return type of a function
-export type ExampleReturnType = ReturnType<typeof exampleAsyncFunction>
-// Result: Promise<{ id: string; name: string } | null>
-
-// Awaited unwraps Promise types
-export type ExampleAwaitedReturn = Awaited<ReturnType<typeof exampleAsyncFunction>>
-// Result: { id: string; name: string } | null
-
-// Parameters extracts parameter types as a tuple
-export type ExampleParams = Parameters<typeof exampleAsyncFunction>
-// Result: [userId: string, options: { includeDeleted: boolean }]
-
-// NonNullable removes null and undefined
-export type ExampleNonNullable = NonNullable<ExampleAwaitedReturn>
-// Result: { id: string; name: string }
-
-// ============================================
-// Custom Utility Types
-// ============================================
+import type { UserRole } from '@/app/features/users/models/User'
 
 /**
  * Makes specific properties required
@@ -150,33 +108,10 @@ export type StrictOmit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
  */
 export type StrictPick<T, K extends keyof T> = Pick<T, K>
 
-// ============================================
-// Practical Examples for the Forum API
-// ============================================
+// Forum API specific utility types
 
-import type { UserRole } from '@/app/features/users/models/User';
-
-// Exclude 'admin' from UserRole
+/** Role that is not admin */
 export type NonAdminRole = Exclude<UserRole, 'admin'>
-// Result: 'user' | 'moderator'
 
-// Exclude 'user' from UserRole  
+/** Role with elevated permissions (moderator or admin) */
 export type ElevatedRole = Exclude<UserRole, 'user'>
-// Result: 'moderator' | 'admin'
-
-// Example class for ConstructorParameters and InstanceType
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-class ExampleService {
-    constructor(
-        private readonly _database: unknown,
-        private readonly _logger: unknown,
-    ) {}
-}
-
-// ConstructorParameters extracts constructor params
-export type ExampleServiceParams = ConstructorParameters<typeof ExampleService>
-// Result: [database: unknown, logger: unknown]
-
-// InstanceType extracts the instance type
-export type ExampleServiceInstance = InstanceType<typeof ExampleService>
-// Result: ExampleService

@@ -8,8 +8,7 @@ const port = Number(process.env.PORT ?? 3000)
 const databaseFile = process.env.DB_FILE_NAME ?? 'file:database.db'
 
 async function bootstrap(): Promise<void> {
-  const { sqlite, database } = createDatabase(databaseFile)
-  // await runMigrations(sqlite)
+  const { database } = createDatabase(databaseFile)
 
   const application = new Application({ database })
   const app = await application.create()

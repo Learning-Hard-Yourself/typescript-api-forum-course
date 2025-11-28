@@ -36,6 +36,11 @@ describe('GET /api/categories', () => {
 
         const response = await request(context.app).get('/api/v1/categories').expect(200)
 
+        // Verify HTTP headers
+        expect(response.headers['cache-control']).toBe('public, max-age=300')
+        expect(response.headers['etag']).toBeDefined()
+        expect(response.headers['x-request-id']).toBeDefined()
+
         expect(response.body.data).toHaveLength(1) // Only root categories
         expect(response.body.data[0]).toMatchObject({
             id: parentId,
@@ -56,6 +61,10 @@ describe('GET /api/categories', () => {
         const context = await createTestApplication()
 
         const response = await request(context.app).get('/api/v1/categories').expect(200)
+
+        // Verify HTTP headers
+        expect(response.headers['cache-control']).toBe('public, max-age=300')
+        expect(response.headers['x-request-id']).toBeDefined()
 
         expect(response.body.data).toEqual([])
     })

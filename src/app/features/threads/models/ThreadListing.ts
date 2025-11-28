@@ -70,10 +70,10 @@ export function describeThreadFilter(filter: ThreadFilter): string {
         case 'none':
             return 'No filter applied'
 
-        default:
-
+        default: {
             const _exhaustive: never = filter
             throw new Error(`Unhandled filter type: ${JSON.stringify(_exhaustive)}`)
+        }
     }
 }
 

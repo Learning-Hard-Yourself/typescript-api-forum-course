@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 import { describe, expect, it } from 'vitest'
 
-import { categories, posts, threads, users } from '@/config/schema'
+import { categories, posts, threads } from '@/config/schema'
 import { authenticateUser, authenticatedRequest } from '@tests/support/authHelper'
 import { createTestApplication } from '@tests/support/createTestApplication'
 
@@ -17,10 +17,6 @@ describe('POST /api/threads', () => {
             displayName: 'Test User',
             password: 'SecurePassword123!',
         })
-
-        // Get user ID
-        const [user] = await context.database.select().from(users).where(eq(users.email, 'test@example.com'))
-        const userId = user.id
 
         // Create category
         const categoryId = uuidv7()
@@ -48,6 +44,10 @@ describe('POST /api/threads', () => {
             title: 'Hello World',
             categoryId,
         })
+
+        // Verify HTTP headers
+        expect(response.headers['location']).toBe(`/api/v1/threads/${response.body.data.id}`)
+        expect(response.headers['x-request-id']).toBeDefined()
 
         // Verify Thread
         const [thread] = await context.database.select().from(threads).where(eq(threads.id, response.body.data.id))

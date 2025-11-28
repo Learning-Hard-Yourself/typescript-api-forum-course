@@ -7,7 +7,7 @@ const prettier = require('eslint-config-prettier')
 
 module.exports = tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', 'build/**'],
+    ignores: ['dist/**', 'coverage/**', 'build/**', 'drizzle.config.ts', 'scripts/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,

@@ -6,7 +6,10 @@
  * - HttpStatus enum
  * - Branded types
  * - Template literal route types
+ * 
+ * Note: _next parameters are required by the @Catch decorator signature
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { Catch, Log } from '@/app/shared/decorators'
 import { NotFoundError } from '@/app/shared/errors/NotFoundError'

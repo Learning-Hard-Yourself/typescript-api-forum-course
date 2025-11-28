@@ -145,6 +145,3 @@ export function getMaxDepthInTree(posts: PostWithReplies[]): number {
 export type ExtractReplies<T> = T extends { replies: infer R } ? R : never
 
 export type HasReplies<T> = T extends { replies: unknown[] } ? true : false
-
-type PostHasReplies = HasReplies<PostWithReplies>
-type BasePostHasReplies = HasReplies<Post>

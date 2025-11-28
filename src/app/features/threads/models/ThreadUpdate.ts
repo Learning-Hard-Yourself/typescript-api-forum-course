@@ -1,5 +1,3 @@
-
-
 import type { Thread } from '@/types'
 
 export type UserRole = 'user' | 'moderator' | 'admin'
@@ -25,10 +23,6 @@ export type ThreadCreationPayload = Required<Pick<Thread, 'title' | 'categoryId'
 export type AllowedUpdate<TRole extends UserRole> = TRole extends 'admin' | 'moderator'
     ? ThreadUpdatePayload
     : UserEditableFields
-
-type AdminCanUpdate = AllowedUpdate<'admin'>
-type ModeratorCanUpdate = AllowedUpdate<'moderator'>
-type UserCanUpdate = AllowedUpdate<'user'>
 
 export type CanModifyAdminFields<TRole extends UserRole> = TRole extends 'admin' | 'moderator'
     ? true
@@ -123,30 +117,4 @@ export function hasOnlyUserEditableFields(update: ThreadUpdatePayload): boolean 
 
 export function hasAdminOnlyFields(update: ThreadUpdatePayload): boolean {
     return 'isPinned' in update || 'isLocked' in update
-}
-
-type ExampleThread = Thread
-type ExamplePartialThread = Partial<Thread>
-type ExampleThreadWithTitle = Pick<Thread, 'id' | 'title'>
-type ExampleThreadWithoutId = Omit<Thread, 'id'>
-type ExampleRequiredThread = Required<Partial<Thread>>
-
-type AdminUpdate = AllowedUpdate<'admin'>
-type UserUpdate = AllowedUpdate<'user'>
-
-const metadata: ThreadMetadata = {
-    viewCount: 100,
-    lastActivity: '2024-03-20',
-    customField: 'custom value',
-    anotherField: true,
-}
-
-function exampleTypeGuard(role: UserRole) {
-    if (isAdminOrModerator(role)) {
-
-        console.log('User has elevated permissions')
-    } else {
-
-        console.log('User has standard permissions')
-    }
 }

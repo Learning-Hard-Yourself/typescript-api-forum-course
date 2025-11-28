@@ -62,6 +62,7 @@ export class ReportRoutes {
     private readonly controller: ReportsController
     private readonly basePath: BaseReportRoute = '/api/v1/reports'
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     constructor(_dependencies: ApplicationDependencies) {
         const reportCreator = new ReportCreator()
         const reportFinder = new ReportFinder()

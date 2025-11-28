@@ -32,6 +32,9 @@ describe('GET /api/v1/profiles/:userId', () => {
 
         const response = await request(context.app).get(`/api/v1/profiles/${userId}`).expect(200)
 
+        // Verify HTTP headers
+        expect(response.headers['x-request-id']).toBeDefined()
+
         expect(response.body.data).toMatchObject({
             userId,
             bio: 'Software developer',

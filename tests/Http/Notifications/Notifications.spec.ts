@@ -37,6 +37,9 @@ describe('Notifications', () => {
             .get('/api/v1/notifications')
             .expect(200)
 
+        // Verify HTTP headers
+        expect(response.headers['x-request-id']).toBeDefined()
+
         expect(response.body.data).toHaveLength(1)
         expect(response.body.data[0].id).toBe(notificationId)
         expect(response.body.data[0].formattedMessage).toBe('System Alert: Welcome!')

@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from 'express'
 import type { PostCreationRequest } from '@/app/features/posts/requests/PostCreationRequest'
 import type { PostResource } from '@/app/features/posts/resources/PostResource'
 import type { PostCreator } from '@/app/features/posts/use-cases/PostCreator'
+import { headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -24,6 +25,10 @@ export class StorePostController {
             const post = await this.postCreator.execute({ authorId: userId, attributes: payload })
             const data = this.postResource.toResponse(post)
             this.logger?.info('Post created', { postId: post.id, userId })
+
+            headers(response)
+                .location({ basePath: '/api/v1/posts', resourceId: post.id })
+
             response.status(201).json({ data })
         } catch (error) {
             next(error)

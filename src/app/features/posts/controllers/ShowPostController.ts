@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { PostResource } from '@/app/features/posts/resources/PostResource'
 import type { PostFinder } from '@/app/features/posts/use-cases/PostFinder'
+import { CachePresets, headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -25,6 +26,11 @@ export class ShowPostController {
 
             const post = await this.postFinder.execute({ id })
             const data = this.postResource.toResponse(post)
+
+            headers(response)
+                .cache(CachePresets.privateShort)
+                .etag({ data })
+
             response.status(200).json({ data })
         } catch (error) {
             this.logger?.error(error as Error)

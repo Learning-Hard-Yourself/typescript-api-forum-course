@@ -4,6 +4,7 @@ import type { ThreadCreationRequest } from '@/app/features/threads/requests/Thre
 import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
 import type { ThreadCreator } from '@/app/features/threads/use-cases/ThreadCreator'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
+import { headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -25,6 +26,10 @@ export class StoreThreadController {
             const thread = await this.threadCreator.execute({ authorId: userId, attributes })
             const data = this.threadResource.toResponse(thread)
             this.logger?.info('Thread created', { threadId: thread.id, userId })
+
+            headers(response)
+                .location({ basePath: '/api/v1/threads', resourceId: thread.id })
+
             response.status(201).json({ data })
         } catch (error) {
             if (error instanceof ValidationError) {

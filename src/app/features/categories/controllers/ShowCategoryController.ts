@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
 import type { CategoryFinder } from '@/app/features/categories/use-cases/CategoryFinder'
+import { CachePresets, headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -25,6 +26,11 @@ export class ShowCategoryController {
 
             const category = await this.categoryFinder.execute({ id })
             const data = this.categoryResource.toResponse(category)
+
+            headers(response)
+                .cache(CachePresets.publicShort)
+                .etag({ data })
+
             response.status(200).json({ data })
         } catch (error) {
             this.logger?.error(error as Error)

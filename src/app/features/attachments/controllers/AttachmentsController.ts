@@ -5,6 +5,7 @@ import type { AttachmentResource } from '@/app/features/attachments/resources/At
 import type { AttachmentCreator } from '@/app/features/attachments/use-cases/AttachmentCreator'
 import { PresignedUrlGenerator } from '@/app/features/attachments/use-cases/PresignedUrlGenerator'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
+import { headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 export class AttachmentsController {
@@ -44,6 +45,10 @@ export class AttachmentsController {
             const attachment = await this.attachmentCreator.execute({ attributes: { ...attributes, url } })
             const data = this.attachmentResource.toResponse(attachment)
             this.logger?.info('Attachment created', { attachmentId: attachment.id })
+
+            headers(response)
+                .location({ basePath: '/api/v1/attachments', resourceId: attachment.id })
+
             response.status(201).json({ data })
         } catch (error) {
             if (error instanceof ValidationError) {

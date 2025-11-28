@@ -4,6 +4,7 @@ import type { PostReplyRequest } from '@/app/features/posts/requests/PostReplyRe
 import type { PostResource } from '@/app/features/posts/resources/PostResource'
 import type { PostReplier } from '@/app/features/posts/use-cases/PostReplier'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
+import { headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -35,8 +36,11 @@ export class ReplyPostController {
                 content: payload.content,
             })
             const data = this.postResource.toResponse(post)
-
             this.logger?.info('Reply created', { postId: post.id, parentId, userId })
+
+            headers(response)
+                .location({ basePath: '/api/v1/posts', resourceId: post.id })
+
             response.status(201).json({ data })
         } catch (error) {
             if (error instanceof ValidationError) {

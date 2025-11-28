@@ -6,6 +6,7 @@ import helmet from 'helmet'
 import { createContentTypeMiddleware } from '@/app/shared/http/middleware/ContentTypeMiddleware'
 import { createErrorHandlerMiddleware } from '@/app/shared/http/middleware/ErrorHandlerMiddleware'
 import { createNotFoundMiddleware } from '@/app/shared/http/middleware/NotFoundMiddleware'
+import { requestIdMiddleware } from '@/app/shared/http/middleware/RequestIdMiddleware'
 import { createRequestLoggerMiddleware } from '@/app/shared/http/middleware/RequestLoggerMiddleware'
 import { Logger } from '@/app/shared/logging/Logger'
 import { registerRoutes } from '@/routes'
@@ -18,7 +19,16 @@ const CORS_OPTIONS: cors.CorsOptions = {
   origin: process.env.ALLOWED_ORIGINS?.split(',') ?? ['http://localhost:3000', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset', 'X-Request-ID'],
+  exposedHeaders: [
+    'X-RateLimit-Limit',
+    'X-RateLimit-Remaining',
+    'X-RateLimit-Reset',
+    'X-Request-Id',
+    'Location',
+    'ETag',
+    'Last-Modified',
+    'Cache-Control',
+  ],
   credentials: true,
   maxAge: 86400, // 24 hours
 }
@@ -66,6 +76,7 @@ export class Application {
   }
 
   private configureMiddleware(): void {
+    this.server.use(requestIdMiddleware())
     this.server.use(createRequestLoggerMiddleware(this.logger))
     this.server.use(express.json({ limit: '10mb' }))
     this.server.use(express.urlencoded({ extended: true, limit: '10mb' }))

@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
 import type { ThreadFinder } from '@/app/features/threads/use-cases/ThreadFinder'
+import { CachePresets, headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -25,6 +26,11 @@ export class ShowThreadController {
 
             const thread = await this.threadFinder.execute({ id })
             const data = this.threadResource.toResponse(thread)
+
+            headers(response)
+                .cache(CachePresets.privateShort)
+                .etag({ data })
+
             response.status(200).json({ data })
         } catch (error) {
             this.logger?.error(error as Error)

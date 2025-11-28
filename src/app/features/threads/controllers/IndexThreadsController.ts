@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import { ThreadListRequestSchema } from '@/app/features/threads/requests/ThreadListRequest'
 import type { ThreadLister } from '@/app/features/threads/use-cases/ThreadLister'
+import { CachePresets, headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -24,6 +25,10 @@ export class IndexThreadsController {
                 perPage: params.perPage,
                 total: result.meta.total,
             })
+
+            headers(res)
+                .cache(CachePresets.noCache)
+
             res.json(result)
         } catch (error) {
             this.logger?.error(error as Error)

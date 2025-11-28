@@ -12,6 +12,7 @@ import { Catch, Log } from '@/app/shared/decorators'
 import { NotFoundError } from '@/app/shared/errors/NotFoundError'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
 import { HttpStatus } from '@/app/shared/http/HttpStatus'
+import { headers } from '@/app/shared/http/ResponseHeaders'
 import { createPostId, createReportId, createThreadId, createUserId } from '@/app/shared/types/branded'
 import type { NextFunction, Request, Response } from 'express'
 import type {
@@ -68,6 +69,9 @@ export class ReportsController {
         }
 
         const report = await this.reportCreator.execute(input)
+
+        headers(res)
+            .location({ basePath: '/api/v1/reports', resourceId: report.id })
 
         return res.status(HttpStatus.Created).json({
             data: report,

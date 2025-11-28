@@ -4,9 +4,6 @@ import type { ForumDatabase } from '@/config/database-types'
 import { categories } from '@/config/schema'
 import type { Category } from '@/types'
 
-/**
- * Use case for listing all categories in a tree structure.
- */
 export class CategoryLister {
     public constructor(private readonly database: ForumDatabase) {}
 

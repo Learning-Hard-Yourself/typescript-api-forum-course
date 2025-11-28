@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 
 import type { PostWithReplies } from '@/app/features/posts/models/PostTree'
 import { buildPostTree } from '@/app/features/posts/models/PostTree'
@@ -11,9 +11,6 @@ export interface ThreadPostsListerInput {
     threadId: string
 }
 
-/**
- * Use case for listing all posts in a thread as a tree.
- */
 export class ThreadPostsLister {
     public constructor(private readonly database: ForumDatabase) {}
 
@@ -30,7 +27,7 @@ export class ThreadPostsLister {
 
         const allPosts = await this.database.query.posts.findMany({
             where: eq(posts.threadId, threadId),
-            orderBy: (posts, { asc }) => [asc(posts.createdAt)],
+            orderBy: asc(posts.createdAt),
         })
 
         const postsAsPost: Post[] = allPosts as Post[]

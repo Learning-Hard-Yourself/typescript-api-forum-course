@@ -22,7 +22,6 @@ export class CategoryRoutes {
         const categoryResource = new CategoryResource()
         const logger = dependencies.logger?.child({ context: 'Categories' })
 
-        // Use cases
         const categoryFinder = new CategoryFinder(dependencies.database)
         const categoryCreator = new CategoryCreator(dependencies.database)
         const categoryLister = new CategoryLister(dependencies.database)

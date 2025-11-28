@@ -7,9 +7,6 @@ import type { ForumDatabase } from '@/config/database-types'
 import { threads } from '@/config/schema'
 import type { Thread } from '@/types'
 
-/**
- * Use case for listing threads with pagination and filtering.
- */
 export class ThreadLister {
     public constructor(private readonly database: ForumDatabase) {}
 

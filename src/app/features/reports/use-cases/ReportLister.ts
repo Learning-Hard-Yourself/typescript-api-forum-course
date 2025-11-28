@@ -11,9 +11,6 @@ export interface ReportFilters {
     reporterId?: UserId
 }
 
-/**
- * Use case for listing reports with optional filters.
- */
 export class ReportLister {
     private readonly store = ReportStore.getInstance()
 

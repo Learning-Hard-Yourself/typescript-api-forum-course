@@ -5,10 +5,6 @@ import type { ThreadLister } from '@/app/features/threads/use-cases/ThreadLister
 import { CachePresets, headers } from '@/app/shared/http/ResponseHeaders'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-/**
- * Single Action Controller for listing threads.
- * GET /api/v1/threads
- */
 export class IndexThreadsController {
     public constructor(
         private readonly threadLister: ThreadLister,

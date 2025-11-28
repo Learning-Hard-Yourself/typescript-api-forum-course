@@ -1,6 +1,6 @@
 import type { Express } from 'express'
 
-import { IndexThreadsController } from '@/app/features/threads/controllers/IndexThreadsController'
+import { IndexThreadsCursorController } from '@/app/features/threads/controllers/IndexThreadsCursorController'
 import { LockThreadController } from '@/app/features/threads/controllers/LockThreadController'
 import { PinThreadController } from '@/app/features/threads/controllers/PinThreadController'
 import { ShowThreadController } from '@/app/features/threads/controllers/ShowThreadController'
@@ -11,8 +11,8 @@ import { UpdateThreadController } from '@/app/features/threads/controllers/Updat
 import { ThreadCreationRequest } from '@/app/features/threads/requests/ThreadCreationRequest'
 import { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
 import { ThreadCreator } from '@/app/features/threads/use-cases/ThreadCreator'
+import { ThreadCursorLister } from '@/app/features/threads/use-cases/ThreadCursorLister'
 import { ThreadFinder } from '@/app/features/threads/use-cases/ThreadFinder'
-import { ThreadLister } from '@/app/features/threads/use-cases/ThreadLister'
 import { ThreadLocker } from '@/app/features/threads/use-cases/ThreadLocker'
 import { ThreadPinner } from '@/app/features/threads/use-cases/ThreadPinner'
 import { ThreadUpdater } from '@/app/features/threads/use-cases/ThreadUpdater'
@@ -24,7 +24,7 @@ import { validateIdParam } from '@/app/shared/http/middleware/ValidateUuidMiddle
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class ThreadRoutes {
-    private readonly indexController: IndexThreadsController
+    private readonly indexController: IndexThreadsCursorController
     private readonly showController: ShowThreadController
     private readonly storeController: StoreThreadController
     private readonly updateController: UpdateThreadController
@@ -38,15 +38,14 @@ export class ThreadRoutes {
         const threadResource = new ThreadResource()
         const logger = dependencies.logger?.child({ context: 'Threads' })
 
-        // Use cases
         const threadFinder = new ThreadFinder(dependencies.database)
         const threadCreator = new ThreadCreator(dependencies.database)
         const threadUpdater = new ThreadUpdater(dependencies.database)
         const threadPinner = new ThreadPinner(dependencies.database)
         const threadLocker = new ThreadLocker(dependencies.database)
-        const threadLister = new ThreadLister(dependencies.database)
+        const threadCursorLister = new ThreadCursorLister(dependencies.database)
 
-        this.indexController = new IndexThreadsController(threadLister, logger)
+        this.indexController = new IndexThreadsCursorController(threadCursorLister, logger)
         this.showController = new ShowThreadController(threadResource, threadFinder, logger)
         this.storeController = new StoreThreadController(new ThreadCreationRequest(), threadResource, threadCreator, logger)
         this.updateController = new UpdateThreadController(threadResource, threadUpdater, logger)

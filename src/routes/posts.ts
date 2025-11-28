@@ -40,7 +40,6 @@ export class PostRoutes {
         const postResource = new PostResource()
         const logger = dependencies.logger?.child({ context: 'Posts' })
 
-        // Use cases
         const postFinder = new PostFinder(dependencies.database)
         const postCreator = new PostCreator(dependencies.database)
         const postReplier = new PostReplier(dependencies.database)

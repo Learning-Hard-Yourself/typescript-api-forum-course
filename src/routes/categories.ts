@@ -1,6 +1,8 @@
 import type { Express } from 'express'
 
-import { CategoriesController } from '@/app/features/categories/controllers/CategoriesController'
+import { IndexCategoriesController } from '@/app/features/categories/controllers/IndexCategoriesController'
+import { ShowCategoryController } from '@/app/features/categories/controllers/ShowCategoryController'
+import { StoreCategoryController } from '@/app/features/categories/controllers/StoreCategoryController'
 import { CategoryCreationRequest } from '@/app/features/categories/requests/CategoryCreationRequest'
 import { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
 import { CategoryService } from '@/app/features/categories/services/CategoryService'
@@ -10,21 +12,23 @@ import { validateIdParam } from '@/app/shared/http/middleware/ValidateUuidMiddle
 import type { ApplicationDependencies } from '@/routes/types'
 
 export class CategoryRoutes {
-    private readonly controller: CategoriesController
+    private readonly indexController: IndexCategoriesController
+    private readonly showController: ShowCategoryController
+    private readonly storeController: StoreCategoryController
 
     public constructor(dependencies: ApplicationDependencies) {
         const categoryService = new CategoryService(dependencies.database)
-        this.controller = new CategoriesController(
-            new CategoryCreationRequest(),
-            new CategoryResource(),
-            categoryService,
-            dependencies.logger?.child({ context: 'CategoriesController' }),
-        )
+        const categoryResource = new CategoryResource()
+        const logger = dependencies.logger?.child({ context: 'Categories' })
+
+        this.indexController = new IndexCategoriesController(categoryResource, categoryService, logger)
+        this.showController = new ShowCategoryController(categoryResource, categoryService, logger)
+        this.storeController = new StoreCategoryController(new CategoryCreationRequest(), categoryResource, categoryService, logger)
     }
 
     public map(server: Express): void {
-        server.get('/api/v1/categories', (request, response, next) => this.controller.index(request, response, next))
-        server.get('/api/v1/categories/:id', validateIdParam, (request, response, next) => this.controller.show(request, response, next))
-        server.post('/api/v1/categories', authMiddleware, requireAnyRole('admin'), (request, response, next) => this.controller.store(request, response, next))
+        server.get('/api/v1/categories', (req, res, next) => this.indexController.handle(req, res, next))
+        server.get('/api/v1/categories/:id', validateIdParam, (req, res, next) => this.showController.handle(req, res, next))
+        server.post('/api/v1/categories', authMiddleware, requireAnyRole('admin'), (req, res, next) => this.storeController.handle(req, res, next))
     }
 }

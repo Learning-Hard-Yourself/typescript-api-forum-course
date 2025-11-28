@@ -7,43 +7,19 @@ import { ConflictError } from '@/app/shared/errors/ConflictError'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { Logger } from '@/app/shared/logging/Logger'
 
-export class CategoriesController {
+/**
+ * Single Action Controller for creating a new category.
+ * POST /api/v1/categories
+ */
+export class StoreCategoryController {
     public constructor(
         private readonly creationRequest: CategoryCreationRequest,
         private readonly categoryResource: CategoryResource,
         private readonly categoryService: CategoryService,
         private readonly logger?: Logger,
-    ) { }
+    ) {}
 
-    public async index(request: Request, response: Response, next: NextFunction): Promise<void> {
-        try {
-            const categories = await this.categoryService.getAll()
-            const data = categories.map((cat) => this.categoryResource.toResponse(cat))
-            response.status(200).json({ data })
-        } catch (error) {
-            this.logger?.error(error as Error)
-            next(error)
-        }
-    }
-
-    public async show(request: Request, response: Response, next: NextFunction): Promise<void> {
-        try {
-            const { id } = request.params
-            if (!id) {
-                response.status(400).json({ message: 'Category ID is required' })
-                return
-            }
-
-            const category = await this.categoryService.findById(id)
-            const data = this.categoryResource.toResponse(category)
-            response.status(200).json({ data })
-        } catch (error) {
-            this.logger?.error(error as Error)
-            next(error)
-        }
-    }
-
-    public async store(request: Request, response: Response, next: NextFunction): Promise<void> {
+    public async handle(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const attributes = this.creationRequest.validate(request.body)
             const category = await this.categoryService.create(attributes)

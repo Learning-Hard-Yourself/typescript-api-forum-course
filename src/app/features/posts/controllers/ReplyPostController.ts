@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { PostReplyRequest } from '@/app/features/posts/requests/PostReplyRequest'
 import type { PostResource } from '@/app/features/posts/resources/PostResource'
-import type { PostService } from '@/app/features/posts/services/PostService'
+import type { PostReplier } from '@/app/features/posts/use-cases/PostReplier'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { Logger } from '@/app/shared/logging/Logger'
 
@@ -14,7 +14,7 @@ export class ReplyPostController {
     public constructor(
         private readonly replyRequest: PostReplyRequest,
         private readonly postResource: PostResource,
-        private readonly postService: PostService,
+        private readonly postReplier: PostReplier,
         private readonly logger?: Logger,
     ) {}
 
@@ -29,7 +29,11 @@ export class ReplyPostController {
             }
 
             const payload = this.replyRequest.validate(request.body)
-            const post = await this.postService.replyToPost(userId, parentId, payload)
+            const post = await this.postReplier.execute({
+                authorId: userId,
+                parentPostId: parentId,
+                content: payload.content,
+            })
             const data = this.postResource.toResponse(post)
 
             this.logger?.info('Reply created', { postId: post.id, parentId, userId })

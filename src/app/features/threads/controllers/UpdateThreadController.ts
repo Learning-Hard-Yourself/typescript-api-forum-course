@@ -3,7 +3,7 @@ import type { NextFunction, Request, Response } from 'express'
 import type { UserRole } from '@/app/features/threads/models/ThreadUpdate'
 import { ThreadUpdateRequestSchema } from '@/app/features/threads/requests/ThreadUpdateRequest'
 import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
-import type { ThreadService } from '@/app/features/threads/services/ThreadService'
+import type { ThreadUpdater } from '@/app/features/threads/use-cases/ThreadUpdater'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -13,7 +13,7 @@ import type { Logger } from '@/app/shared/logging/Logger'
 export class UpdateThreadController {
     public constructor(
         private readonly threadResource: ThreadResource,
-        private readonly threadService: ThreadService,
+        private readonly threadUpdater: ThreadUpdater,
         private readonly logger?: Logger,
     ) {}
 
@@ -28,7 +28,12 @@ export class UpdateThreadController {
             }
 
             const validatedData = ThreadUpdateRequestSchema.parse(request.body)
-            const thread = await this.threadService.updateThread(id, userId, userRole, validatedData)
+            const thread = await this.threadUpdater.execute({
+                threadId: id,
+                userId,
+                userRole,
+                updateData: validatedData,
+            })
             const data = this.threadResource.toResponse(thread)
 
             this.logger?.info('Thread updated', { threadId: id, userId })

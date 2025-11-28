@@ -5,7 +5,9 @@ import { ShowCategoryController } from '@/app/features/categories/controllers/Sh
 import { StoreCategoryController } from '@/app/features/categories/controllers/StoreCategoryController'
 import { CategoryCreationRequest } from '@/app/features/categories/requests/CategoryCreationRequest'
 import { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
-import { CategoryService } from '@/app/features/categories/services/CategoryService'
+import { CategoryCreator } from '@/app/features/categories/use-cases/CategoryCreator'
+import { CategoryFinder } from '@/app/features/categories/use-cases/CategoryFinder'
+import { CategoryLister } from '@/app/features/categories/use-cases/CategoryLister'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import { requireAnyRole } from '@/app/shared/http/middleware/RequireRoleMiddleware'
 import { validateIdParam } from '@/app/shared/http/middleware/ValidateUuidMiddleware'
@@ -17,13 +19,17 @@ export class CategoryRoutes {
     private readonly storeController: StoreCategoryController
 
     public constructor(dependencies: ApplicationDependencies) {
-        const categoryService = new CategoryService(dependencies.database)
         const categoryResource = new CategoryResource()
         const logger = dependencies.logger?.child({ context: 'Categories' })
 
-        this.indexController = new IndexCategoriesController(categoryResource, categoryService, logger)
-        this.showController = new ShowCategoryController(categoryResource, categoryService, logger)
-        this.storeController = new StoreCategoryController(new CategoryCreationRequest(), categoryResource, categoryService, logger)
+        // Use cases
+        const categoryFinder = new CategoryFinder(dependencies.database)
+        const categoryCreator = new CategoryCreator(dependencies.database)
+        const categoryLister = new CategoryLister(dependencies.database)
+
+        this.indexController = new IndexCategoriesController(categoryResource, categoryLister, logger)
+        this.showController = new ShowCategoryController(categoryResource, categoryFinder, logger)
+        this.storeController = new StoreCategoryController(new CategoryCreationRequest(), categoryResource, categoryCreator, logger)
     }
 
     public map(server: Express): void {

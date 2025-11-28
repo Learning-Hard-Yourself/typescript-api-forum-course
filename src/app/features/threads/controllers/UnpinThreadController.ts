@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { UserRole } from '@/app/features/threads/models/ThreadUpdate'
 import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
-import type { ThreadService } from '@/app/features/threads/services/ThreadService'
+import type { ThreadPinner } from '@/app/features/threads/use-cases/ThreadPinner'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -12,7 +12,7 @@ import type { Logger } from '@/app/shared/logging/Logger'
 export class UnpinThreadController {
     public constructor(
         private readonly threadResource: ThreadResource,
-        private readonly threadService: ThreadService,
+        private readonly threadPinner: ThreadPinner,
         private readonly logger?: Logger,
     ) {}
 
@@ -25,7 +25,7 @@ export class UnpinThreadController {
                 throw new Error('Thread ID is required')
             }
 
-            const thread = await this.threadService.unpinThread(id, userRole)
+            const thread = await this.threadPinner.execute({ threadId: id, userRole, pin: false })
             const data = this.threadResource.toResponse(thread)
 
             this.logger?.info('Thread unpinned', { threadId: id })

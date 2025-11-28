@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
-import type { CategoryService } from '@/app/features/categories/services/CategoryService'
+import type { CategoryLister } from '@/app/features/categories/use-cases/CategoryLister'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -11,13 +11,13 @@ import type { Logger } from '@/app/shared/logging/Logger'
 export class IndexCategoriesController {
     public constructor(
         private readonly categoryResource: CategoryResource,
-        private readonly categoryService: CategoryService,
+        private readonly categoryLister: CategoryLister,
         private readonly logger?: Logger,
     ) {}
 
     public async handle(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
-            const categories = await this.categoryService.getAll()
+            const categories = await this.categoryLister.execute()
             const data = categories.map((cat) => this.categoryResource.toResponse(cat))
             response.status(200).json({ data })
         } catch (error) {

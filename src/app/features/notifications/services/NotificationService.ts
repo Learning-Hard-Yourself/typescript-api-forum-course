@@ -70,7 +70,6 @@ export class NotificationService {
             case 'system':
                 return `System Alert: ${notification.message}`
             default:
-
                 const _exhaustive: never = notification
                 return 'Unknown notification'
         }

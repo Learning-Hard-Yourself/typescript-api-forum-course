@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { PostResource } from '@/app/features/posts/resources/PostResource'
-import type { PostService } from '@/app/features/posts/services/PostService'
+import type { PostFinder } from '@/app/features/posts/use-cases/PostFinder'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -11,7 +11,7 @@ import type { Logger } from '@/app/shared/logging/Logger'
 export class ShowPostController {
     public constructor(
         private readonly postResource: PostResource,
-        private readonly postService: PostService,
+        private readonly postFinder: PostFinder,
         private readonly logger?: Logger,
     ) {}
 
@@ -23,7 +23,7 @@ export class ShowPostController {
                 return
             }
 
-            const post = await this.postService.findById(id)
+            const post = await this.postFinder.execute({ id })
             const data = this.postResource.toResponse(post)
             response.status(200).json({ data })
         } catch (error) {

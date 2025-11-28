@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import { NestedPostResource } from '@/app/features/posts/resources/NestedPostResource'
-import type { PostService } from '@/app/features/posts/services/PostService'
+import type { ThreadPostsLister } from '@/app/features/posts/use-cases/ThreadPostsLister'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -10,7 +10,7 @@ import type { Logger } from '@/app/shared/logging/Logger'
  */
 export class IndexThreadPostsController {
     public constructor(
-        private readonly postService: PostService,
+        private readonly threadPostsLister: ThreadPostsLister,
         private readonly logger?: Logger,
     ) {}
 
@@ -23,7 +23,7 @@ export class IndexThreadPostsController {
                 return
             }
 
-            const posts = await this.postService.getThreadPosts(threadId)
+            const posts = await this.threadPostsLister.execute({ threadId })
             const nestedResource = new NestedPostResource()
             const data = nestedResource.toJsonArray(posts)
 

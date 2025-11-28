@@ -14,7 +14,10 @@ import { PostEditRequest } from '@/app/features/posts/requests/PostEditRequest'
 import { PostReplyRequest } from '@/app/features/posts/requests/PostReplyRequest'
 import { PostResource } from '@/app/features/posts/resources/PostResource'
 import { PostModerationService } from '@/app/features/posts/services/PostModerationService'
-import { PostService } from '@/app/features/posts/services/PostService'
+import { PostCreator } from '@/app/features/posts/use-cases/PostCreator'
+import { PostFinder } from '@/app/features/posts/use-cases/PostFinder'
+import { PostReplier } from '@/app/features/posts/use-cases/PostReplier'
+import { ThreadPostsLister } from '@/app/features/posts/use-cases/ThreadPostsLister'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import { rateLimiters } from '@/app/shared/http/middleware/RateLimitMiddleware'
 import { validateIdParam, validateThreadIdParam } from '@/app/shared/http/middleware/ValidateUuidMiddleware'
@@ -31,15 +34,20 @@ export class PostRoutes {
     private readonly historyController: HistoryPostController
 
     public constructor(dependencies: ApplicationDependencies) {
-        const postService = new PostService(dependencies.database)
         const moderationService = new PostModerationService(dependencies.database)
         const postResource = new PostResource()
         const logger = dependencies.logger?.child({ context: 'Posts' })
 
-        this.showController = new ShowPostController(postResource, postService, logger)
-        this.storeController = new StorePostController(new PostCreationRequest(), postResource, postService, logger)
-        this.replyController = new ReplyPostController(new PostReplyRequest(), postResource, postService, logger)
-        this.indexThreadPostsController = new IndexThreadPostsController(postService, logger)
+        // Use cases
+        const postFinder = new PostFinder(dependencies.database)
+        const postCreator = new PostCreator(dependencies.database)
+        const postReplier = new PostReplier(dependencies.database)
+        const threadPostsLister = new ThreadPostsLister(dependencies.database)
+
+        this.showController = new ShowPostController(postResource, postFinder, logger)
+        this.storeController = new StorePostController(new PostCreationRequest(), postResource, postCreator, logger)
+        this.replyController = new ReplyPostController(new PostReplyRequest(), postResource, postReplier, logger)
+        this.indexThreadPostsController = new IndexThreadPostsController(threadPostsLister, logger)
         this.editController = new EditPostController(new PostEditRequest(), postResource, moderationService, logger)
         this.deleteController = new DeletePostController(new PostDeleteRequest(), moderationService, logger)
         this.restoreController = new RestorePostController(moderationService, logger)

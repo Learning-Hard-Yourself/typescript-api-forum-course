@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { CategoryCreationRequest } from '@/app/features/categories/requests/CategoryCreationRequest'
 import type { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
-import type { CategoryService } from '@/app/features/categories/services/CategoryService'
+import type { CategoryCreator } from '@/app/features/categories/use-cases/CategoryCreator'
 import { ConflictError } from '@/app/shared/errors/ConflictError'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
 import type { Logger } from '@/app/shared/logging/Logger'
@@ -15,14 +15,14 @@ export class StoreCategoryController {
     public constructor(
         private readonly creationRequest: CategoryCreationRequest,
         private readonly categoryResource: CategoryResource,
-        private readonly categoryService: CategoryService,
+        private readonly categoryCreator: CategoryCreator,
         private readonly logger?: Logger,
     ) {}
 
     public async handle(request: Request, response: Response, next: NextFunction): Promise<void> {
         try {
             const attributes = this.creationRequest.validate(request.body)
-            const category = await this.categoryService.create(attributes)
+            const category = await this.categoryCreator.execute({ attributes })
             const data = this.categoryResource.toResponse(category)
             this.logger?.info('Category created', { categoryId: category.id })
             response.status(201).json({ data })

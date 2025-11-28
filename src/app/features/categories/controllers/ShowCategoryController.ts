@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { CategoryResource } from '@/app/features/categories/resources/CategoryResource'
-import type { CategoryService } from '@/app/features/categories/services/CategoryService'
+import type { CategoryFinder } from '@/app/features/categories/use-cases/CategoryFinder'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -11,7 +11,7 @@ import type { Logger } from '@/app/shared/logging/Logger'
 export class ShowCategoryController {
     public constructor(
         private readonly categoryResource: CategoryResource,
-        private readonly categoryService: CategoryService,
+        private readonly categoryFinder: CategoryFinder,
         private readonly logger?: Logger,
     ) {}
 
@@ -23,7 +23,7 @@ export class ShowCategoryController {
                 return
             }
 
-            const category = await this.categoryService.findById(id)
+            const category = await this.categoryFinder.execute({ id })
             const data = this.categoryResource.toResponse(category)
             response.status(200).json({ data })
         } catch (error) {

@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
-import type { ThreadService } from '@/app/features/threads/services/ThreadService'
+import type { ThreadFinder } from '@/app/features/threads/use-cases/ThreadFinder'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -11,7 +11,7 @@ import type { Logger } from '@/app/shared/logging/Logger'
 export class ShowThreadController {
     public constructor(
         private readonly threadResource: ThreadResource,
-        private readonly threadService: ThreadService,
+        private readonly threadFinder: ThreadFinder,
         private readonly logger?: Logger,
     ) {}
 
@@ -23,7 +23,7 @@ export class ShowThreadController {
                 return
             }
 
-            const thread = await this.threadService.findById(id)
+            const thread = await this.threadFinder.execute({ id })
             const data = this.threadResource.toResponse(thread)
             response.status(200).json({ data })
         } catch (error) {

@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 import type { UserRole } from '@/app/features/threads/models/ThreadUpdate'
 import type { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
-import type { ThreadService } from '@/app/features/threads/services/ThreadService'
+import type { ThreadLocker } from '@/app/features/threads/use-cases/ThreadLocker'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 /**
@@ -12,7 +12,7 @@ import type { Logger } from '@/app/shared/logging/Logger'
 export class UnlockThreadController {
     public constructor(
         private readonly threadResource: ThreadResource,
-        private readonly threadService: ThreadService,
+        private readonly threadLocker: ThreadLocker,
         private readonly logger?: Logger,
     ) {}
 
@@ -25,7 +25,7 @@ export class UnlockThreadController {
                 throw new Error('Thread ID is required')
             }
 
-            const thread = await this.threadService.unlockThread(id, userRole)
+            const thread = await this.threadLocker.execute({ threadId: id, userRole, lock: false })
             const data = this.threadResource.toResponse(thread)
 
             this.logger?.info('Thread unlocked', { threadId: id })

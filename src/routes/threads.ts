@@ -10,7 +10,12 @@ import { UnpinThreadController } from '@/app/features/threads/controllers/UnpinT
 import { UpdateThreadController } from '@/app/features/threads/controllers/UpdateThreadController'
 import { ThreadCreationRequest } from '@/app/features/threads/requests/ThreadCreationRequest'
 import { ThreadResource } from '@/app/features/threads/resources/ThreadResource'
-import { ThreadService } from '@/app/features/threads/services/ThreadService'
+import { ThreadCreator } from '@/app/features/threads/use-cases/ThreadCreator'
+import { ThreadFinder } from '@/app/features/threads/use-cases/ThreadFinder'
+import { ThreadLister } from '@/app/features/threads/use-cases/ThreadLister'
+import { ThreadLocker } from '@/app/features/threads/use-cases/ThreadLocker'
+import { ThreadPinner } from '@/app/features/threads/use-cases/ThreadPinner'
+import { ThreadUpdater } from '@/app/features/threads/use-cases/ThreadUpdater'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
 import { rateLimiters } from '@/app/shared/http/middleware/RateLimitMiddleware'
 import { createRequireOwnership } from '@/app/shared/http/middleware/RequireOwnershipMiddleware'
@@ -30,18 +35,25 @@ export class ThreadRoutes {
     private readonly requireOwnership: ReturnType<typeof createRequireOwnership>
 
     public constructor(dependencies: ApplicationDependencies) {
-        const threadService = new ThreadService(dependencies.database)
         const threadResource = new ThreadResource()
         const logger = dependencies.logger?.child({ context: 'Threads' })
 
-        this.indexController = new IndexThreadsController(threadService, logger)
-        this.showController = new ShowThreadController(threadResource, threadService, logger)
-        this.storeController = new StoreThreadController(new ThreadCreationRequest(), threadResource, threadService, logger)
-        this.updateController = new UpdateThreadController(threadResource, threadService, logger)
-        this.pinController = new PinThreadController(threadResource, threadService, logger)
-        this.unpinController = new UnpinThreadController(threadResource, threadService, logger)
-        this.lockController = new LockThreadController(threadResource, threadService, logger)
-        this.unlockController = new UnlockThreadController(threadResource, threadService, logger)
+        // Use cases
+        const threadFinder = new ThreadFinder(dependencies.database)
+        const threadCreator = new ThreadCreator(dependencies.database)
+        const threadUpdater = new ThreadUpdater(dependencies.database)
+        const threadPinner = new ThreadPinner(dependencies.database)
+        const threadLocker = new ThreadLocker(dependencies.database)
+        const threadLister = new ThreadLister(dependencies.database)
+
+        this.indexController = new IndexThreadsController(threadLister, logger)
+        this.showController = new ShowThreadController(threadResource, threadFinder, logger)
+        this.storeController = new StoreThreadController(new ThreadCreationRequest(), threadResource, threadCreator, logger)
+        this.updateController = new UpdateThreadController(threadResource, threadUpdater, logger)
+        this.pinController = new PinThreadController(threadResource, threadPinner, logger)
+        this.unpinController = new UnpinThreadController(threadResource, threadPinner, logger)
+        this.lockController = new LockThreadController(threadResource, threadLocker, logger)
+        this.unlockController = new UnlockThreadController(threadResource, threadLocker, logger)
         this.requireOwnership = createRequireOwnership(dependencies.database)
     }
 

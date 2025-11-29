@@ -1,6 +1,4 @@
 import 'dotenv-safe/config'
-
-
 import { Application } from '@/bootstrap/Application'
 import { createDatabase } from '@/config/database'
 
@@ -24,7 +22,6 @@ async function bootstrap(): Promise<void> {
 }
 
 bootstrap().catch((error) => {
-
   console.error('Failed to start server', error)
   process.exitCode = 1
 })

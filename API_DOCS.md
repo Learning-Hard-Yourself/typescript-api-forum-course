@@ -11,14 +11,21 @@ This is a RESTful API for a forum application built with TypeScript, Express, an
 The API uses session-based authentication via `better-auth`.
 - **Session Cookie**: `better-auth.session_token`
 - **CSRF Protection**: Standard browser protections apply.
+- **Refresh Flow**: Short-lived access token refreshed via `/api/v1/auth/refresh` using the session cookie.
 
 ### Rate Limiting
-The API implements rate limiting to prevent abuse:
+The API implements IP-based rate limiting to prevent abuse:
 - **Auth Endpoints**: 5 requests per 15 minutes
 - **Thread Creation**: 5 threads per hour
 - **Post Creation**: 10 posts per hour
 - **Reply Creation**: 20 replies per hour
 - **General API**: 100 requests per 15 minutes
+
+Responses include standard rate limit headers:
+- `X-RateLimit-Limit`: Maximum requests allowed in the window
+- `X-RateLimit-Remaining`: Remaining requests in the current window
+- `X-RateLimit-Reset`: ISO timestamp when the window resets
+- `Retry-After`: Seconds to wait before retrying (on `429`)
 
 ---
 
@@ -32,7 +39,7 @@ Create a new user account.
 **Request:**
 ```http
 POST /api/v1/auth/register HTTP/1.1
-Host: localhost:3001
+Host: localhost:3000
 Content-Type: application/json
 
 {
@@ -69,7 +76,7 @@ Sign in to an existing account.
 **Request:**
 ```http
 POST /api/v1/auth/login HTTP/1.1
-Host: localhost:3001
+Host: localhost:3000
 Content-Type: application/json
 
 {
@@ -103,7 +110,7 @@ Get the currently authenticated user's profile.
 **Request:**
 ```http
 GET /api/v1/auth/me HTTP/1.1
-Host: localhost:3001
+Host: localhost:3000
 Cookie: better-auth.session_token=eyJhbGc...
 ```
 
@@ -126,10 +133,40 @@ Content-Type: application/json
 }
 ```
 
+#### Refresh Access Token
+Refresh the access token using the existing session cookie.
+
+**Request:**
+```http
+POST /api/v1/auth/refresh HTTP/1.1
+Host: localhost:3000
+Cookie: better-auth.session_token=eyJhbGc...
+```
+
+**Response (200 OK):**
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "data": {
+    "user": {
+      "id": "019ac02c-1234-7890-abcd-ef1234567890",
+      "username": "johndoe",
+      "email": "john@example.com",
+      "displayName": "John Doe",
+      "role": "user"
+    }
+  }
+}
+```
+
 #### Logout
 Sign out and invalidate the session.
-- **URL**: `/auth/logout`
+- **URL**: `/api/v1/auth/logout`
 - **Method**: `POST`
+
+On success returns `204 No Content`.
 
 ---
 
@@ -159,21 +196,28 @@ Get statistics for a user (thread count, post count, reputation).
 
 ### 🧵 Threads
 
-#### List Threads
-Get a paginated list of threads.
+#### List Threads (Cursor-based)
+Get a cursor-paginated list of threads.
 - **URL**: `/threads`
 - **Method**: `GET`
 - **Query Params**:
-  - `page`: Page number (default: 1)
-  - `perPage`: Items per page (default: 10)
+  - `after`: Cursor to fetch items after this value
+  - `before`: Cursor to fetch items before this value
+  - `first`: Number of items after the cursor (1-100)
+  - `last`: Number of items before the cursor (1-100)
+  - `sortBy`: `newest` | `popular` | `most_active` (default: `newest`)
   - `categoryId`: Filter by category
-  - `sortBy`: `newest` | `popular`
+  - `authorId`: Filter by author
+  - `isPinned`: Filter by pinned status (`true`/`false`)
+  - `search`: Full-text search in title/content
+
+The response follows a Relay-style connection shape with `edges` and `pageInfo`.
 
 #### Create Thread
 **Request:**
 ```http
 POST /api/v1/threads HTTP/1.1
-Host: localhost:3001
+Host: localhost:3000
 Content-Type: application/json
 Cookie: better-auth.session_token=eyJhbGc...
 
@@ -231,7 +275,7 @@ Get all posts for a thread, including nested replies.
 **Request:**
 ```http
 POST /api/v1/posts HTTP/1.1
-Host: localhost:3001
+Host: localhost:3000
 Content-Type: application/json
 Cookie: better-auth.session_token=eyJhbGc...
 
@@ -265,7 +309,7 @@ Content-Type: application/json
 **Request:**
 ```http
 POST /api/v1/posts/019ac028-0179-7528-affc-d8c97dcbb07e/reply HTTP/1.1
-Host: localhost:3001
+Host: localhost:3000
 Content-Type: application/json
 Cookie: better-auth.session_token=eyJhbGc...
 
@@ -299,7 +343,7 @@ Content-Type: application/json
 **Request:**
 ```http
 POST /api/v1/posts/019ac028-0179-7528-affc-d8c97dcbb07e/vote HTTP/1.1
-Host: localhost:3001
+Host: localhost:3000
 Content-Type: application/json
 Cookie: better-auth.session_token=eyJhbGc...
 
@@ -325,7 +369,42 @@ Content-Type: application/json
 }
 ```
 
-**Note:** Use `"downvote"` to downvote. Voting again with the same type updates the existing vote.
+**Note:** Use `"downvote"` to downvote. Voting again with the same type updates or removes the existing vote depending on the payload.
+
+#### Edit Post
+Update the content of an existing post.
+- **URL**: `/posts/:id`
+- **Method**: `PATCH`
+- **Auth**: Required
+
+**Request:**
+```http
+PATCH /api/v1/posts/019ac028-0179-7528-affc-d8c97dcbb07e HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+Cookie: better-auth.session_token=eyJhbGc...
+
+{
+  "content": "Updated content for the post."
+}
+```
+
+#### Delete Post
+Soft-delete a post (content hidden but history preserved).
+- **URL**: `/posts/:id`
+- **Method**: `DELETE`
+- **Auth**: Required (owner or moderator)
+
+#### Restore Post
+Restore a previously deleted post.
+- **URL**: `/posts/:id/restore`
+- **Method**: `POST`
+- **Auth**: Required (owner or moderator)
+
+#### Get Post History
+Get the edit history for a post.
+- **URL**: `/posts/:id/history`
+- **Method**: `GET`
 
 ### 📎 Attachments
 
@@ -335,7 +414,7 @@ Generate a presigned URL for uploading files directly to storage (e.g., R2/S3).
 **Request:**
 ```http
 POST /api/v1/attachments/sign HTTP/1.1
-Host: localhost:3001
+Host: localhost:3000
 Content-Type: application/json
 Cookie: better-auth.session_token=eyJhbGc...
 
@@ -377,6 +456,8 @@ Record a successfully uploaded file in the database.
 
 ### 🔔 Notifications
 
+All notification endpoints require authentication.
+
 #### List Notifications
 - **URL**: `/notifications`
 - **Method**: `GET`
@@ -384,6 +465,77 @@ Record a successfully uploaded file in the database.
 #### Mark as Read
 - **URL**: `/notifications/:id/read`
 - **Method**: `POST`
+
+---
+
+### 🚩 Reports
+
+Report abusive or inappropriate content. All report endpoints require authentication.
+
+#### Create Report
+Create a new report for a post, thread, user, or comment.
+
+**Request:**
+```http
+POST /api/v1/reports HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+Cookie: better-auth.session_token=eyJhbGc...
+
+{
+  "target": {
+    "type": "post",
+    "postId": "019ac028-0179-7528-affc-d8c97dcbb07e",
+    "threadId": "019ac028-0167-725a-b0d8-c67058e5cf65"
+  },
+  "reportType": "SPAM",
+  "description": "This post is spam.",
+  "priority": "High"
+}
+```
+
+**Response (201 Created):**
+```http
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+{
+  "data": {
+    "id": "RPT-2025-11-ABC",
+    "status": "PENDING",
+    "reportType": "SPAM",
+    "priority": "High",
+    "createdAt": "2025-11-26T12:40:00.000Z"
+  }
+}
+```
+
+#### List Reports (Moderators/Admins)
+- **URL**: `/reports`
+- **Method**: `GET`
+- **Auth**: `moderator` or `admin`
+
+#### Get Report Stats (Moderators/Admins)
+- **URL**: `/reports/stats`
+- **Method**: `GET`
+- **Auth**: `moderator` or `admin`
+
+#### Get Report Details (Moderators/Admins)
+- **URL**: `/reports/:id`
+- **Method**: `GET`
+- **Auth**: `moderator` or `admin`
+
+#### Resolve Report (Admins)
+Mark a report as resolved (content handled).
+- **URL**: `/reports/:id/resolve`
+- **Method**: `POST`
+- **Auth**: `admin`
+
+#### Dismiss Report (Admins)
+Dismiss a report as invalid or not actionable.
+- **URL**: `/reports/:id/dismiss`
+- **Method**: `POST`
+- **Auth**: `admin`
 
 ---
 

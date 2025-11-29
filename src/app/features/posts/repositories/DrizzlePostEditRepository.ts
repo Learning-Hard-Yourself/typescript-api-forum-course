@@ -5,9 +5,7 @@ import type { ForumDatabase } from '@/config/database-types'
 import { postEdits } from '@/config/schema'
 import type { PostEdit, PostEditRepository } from './PostEditRepository'
 
-/**
- * Drizzle ORM implementation of PostEditRepository
- */
+
 export class DrizzlePostEditRepository implements PostEditRepository {
     constructor(private readonly database: ForumDatabase) {}
 

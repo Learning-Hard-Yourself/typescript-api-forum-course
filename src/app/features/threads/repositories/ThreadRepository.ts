@@ -8,9 +8,7 @@ export interface ThreadCreationData {
     content: string
 }
 
-/**
- * Repository interface for Thread entity
- */
+
 export interface ThreadRepository {
     findById(id: string): Promise<Thread | null>
     findBySlug(slug: string): Promise<Thread | null>

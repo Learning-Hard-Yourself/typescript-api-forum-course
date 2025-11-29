@@ -8,9 +8,7 @@ export interface PostEdit {
     createdAt: string
 }
 
-/**
- * Repository interface for PostEdit entity
- */
+
 export interface PostEditRepository {
     findByPostId(postId: string): Promise<PostEdit[]>
     save(edit: Omit<PostEdit, 'id'>): Promise<PostEdit>

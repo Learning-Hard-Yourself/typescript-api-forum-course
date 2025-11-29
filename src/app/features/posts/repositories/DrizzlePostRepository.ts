@@ -6,9 +6,7 @@ import { posts } from '@/config/schema'
 import type { Post } from '@/types'
 import type { PostRepository } from './PostRepository'
 
-/**
- * Drizzle ORM implementation of PostRepository
- */
+
 export class DrizzlePostRepository implements PostRepository {
     constructor(private readonly database: ForumDatabase) {}
 

@@ -1,12 +1,4 @@
-/**
- * Branded Types (Nominal Typing) for type-safe IDs.
- * 
- * TypeScript Concept: Branded/Nominal Types
- * - TypeScript uses structural typing by default
- * - Branded types add a phantom property to create nominal types
- * - Prevents accidentally mixing up different ID types
- * - The brand property never exists at runtime
- */
+
 
 // The Brand utility type adds a phantom type property
 declare const __brand: unique symbol
@@ -39,10 +31,7 @@ export type IpAddress = Brand<string, 'IpAddress'>
 // Factory Functions
 // ============================================
 
-/**
- * Creates a branded UserId from a string.
- * In a real app, you might add validation here.
- */
+
 export function createUserId(id: string): UserId {
     return id as UserId
 }
@@ -139,26 +128,12 @@ export function isThreadId(value: unknown): value is ThreadId {
 // Utility Types for Branded Types
 // ============================================
 
-/**
- * Extracts the base type from a branded type
- */
+
 export type UnwrapBrand<T> = T extends Brand<infer U, unknown> ? U : T
 
-/**
- * Converts all branded ID fields in an object to their base types
- */
+
 export type UnbrandedIds<T> = {
     [K in keyof T]: T[K] extends Brand<infer U, unknown> ? U : T[K]
 }
 
-/**
- * Example usage showing type safety:
- * 
- * const userId: UserId = createUserId('user_123')
- * const postId: PostId = createPostId('post_456')
- * 
- * function getPost(id: PostId) { ... }
- * 
- * getPost(userId) // ❌ Type error! Can't pass UserId where PostId expected
- * getPost(postId) // ✅ Works correctly
- */
+

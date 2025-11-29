@@ -37,10 +37,8 @@ export class ThreadRoutes {
     public constructor(dependencies: ApplicationDependencies) {
         const logger = dependencies.logger?.child({ context: 'Threads' })
 
-        // Repository
         const threadRepository = new DrizzleThreadRepository(dependencies.database)
 
-        // Use cases
         const threadFinder = new ThreadFinder(threadRepository)
         const threadCreator = new ThreadCreator(threadRepository)
         const threadUpdater = new ThreadUpdater(threadRepository)

@@ -1,11 +1,4 @@
-/**
- * Error Handling Decorators.
- * 
- * TypeScript Concept: Decorators with Error Handling
- * - Decorators can wrap methods to catch and transform errors
- * - Useful for consistent error handling across controllers
- * - Can convert exceptions to HTTP responses
- */
+
 
 import { ApplicationError } from '@/app/shared/errors/ApplicationError'
 import { HttpStatus } from '@/app/shared/http/HttpStatus'
@@ -14,16 +7,7 @@ import type { NextFunction, Request, Response } from 'express'
 
 const logger = ConsoleLogger.create({ name: 'error-handler' })
 
-/**
- * @Catch decorator - catches errors in controller methods
- * and passes them to Express error handler
- * 
- * Usage:
- * class PostsController {
- *     @Catch
- *     async create(req: Request, res: Response, next: NextFunction) { ... }
- * }
- */
+
 export function Catch(
     target: object,
     propertyKey: string | symbol,
@@ -56,15 +40,7 @@ export function Catch(
     return descriptor
 }
 
-/**
- * @CatchAndRespond decorator - catches errors and sends appropriate HTTP response
- * 
- * Usage:
- * class PostsController {
- *     @CatchAndRespond
- *     async create(req: Request, res: Response) { ... }
- * }
- */
+
 export function CatchAndRespond(
     target: object,
     propertyKey: string | symbol,
@@ -110,15 +86,7 @@ export function CatchAndRespond(
     return descriptor
 }
 
-/**
- * @CatchWith decorator factory - catches errors and handles with custom handler
- * 
- * Usage:
- * @CatchWith((error, req, res) => {
- *     res.status(400).json({ error: 'Custom error' })
- * })
- * async create(req: Request, res: Response) { ... }
- */
+
 export function CatchWith(
     handler: (error: unknown, req: Request, res: Response) => void | Promise<void>,
 ) {
@@ -145,13 +113,7 @@ export function CatchWith(
     }
 }
 
-/**
- * Class decorator to apply @Catch to all methods
- * 
- * Usage:
- * @CatchAll
- * class PostsController { ... }
- */
+
 export function CatchAll<T extends new (...args: unknown[]) => object>(constructor: T) {
     const prototype = constructor.prototype
     const propertyNames = Object.getOwnPropertyNames(prototype)

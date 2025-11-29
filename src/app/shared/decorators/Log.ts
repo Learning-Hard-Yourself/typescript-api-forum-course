@@ -1,26 +1,10 @@
-/**
- * Method Decorators for logging.
- * 
- * TypeScript Concept: Decorators
- * - Decorators are special functions that can modify classes, methods, properties
- * - Method decorators receive: target, propertyKey, descriptor
- * - They can wrap the original method to add behavior
- * - Requires experimentalDecorators: true in tsconfig.json
- */
+
 
 import { ConsoleLogger } from '@/app/shared/logging/Logger'
 
 const logger = ConsoleLogger.create({ name: 'decorator' })
 
-/**
- * @Log decorator - logs method entry and exit with timing
- * 
- * Usage:
- * class UserService {
- *     @Log
- *     async findById(id: string) { ... }
- * }
- */
+
 export function Log(
     target: object,
     propertyKey: string | symbol,
@@ -64,9 +48,7 @@ export function Log(
     return descriptor
 }
 
-/**
- * @LogSync decorator - for synchronous methods
- */
+
 export function LogSync(
     target: object,
     propertyKey: string | symbol,
@@ -110,13 +92,7 @@ export function LogSync(
     return descriptor
 }
 
-/**
- * @LogLevel decorator factory - logs with specific level
- * 
- * Usage:
- * @LogLevel('info')
- * async createUser() { ... }
- */
+
 export function LogLevel(level: 'debug' | 'info' | 'warn' | 'error') {
     return function (
         target: object,

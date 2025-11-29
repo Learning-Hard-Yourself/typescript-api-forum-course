@@ -6,9 +6,7 @@ import { categories } from '@/config/schema'
 import type { Category } from '@/types'
 import type { CategoryRepository } from './CategoryRepository'
 
-/**
- * Drizzle ORM implementation of CategoryRepository
- */
+
 export class DrizzleCategoryRepository implements CategoryRepository {
     constructor(private readonly database: ForumDatabase) {}
 

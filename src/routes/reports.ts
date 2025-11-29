@@ -30,38 +30,26 @@ import type { ApiVersion, Resource } from '@/app/shared/types/api-routes'
 import type { ApplicationDependencies } from '@/routes/types'
 import type { Express, NextFunction, Request, Response } from 'express'
 
-// ============================================
-// Route Configuration Types
-// ============================================
 
 type ReportRouteVersion = Extract<ApiVersion, 'v1'>
 type ReportResource = Extract<Resource, 'reports'>
 type BaseReportRoute = `/api/${ReportRouteVersion}/${ReportResource}`
 
-// ============================================
-// Middleware Pipelines
-// ============================================
 
-// Public pipeline for viewing reports (moderators only)
 const viewReportsPipeline = MiddlewarePipeline.create()
     .use(loggingMiddleware())
     .use(rateLimitMiddleware(100))
     .use(authMiddleware())
     .use(requireRoleMiddleware('moderator'))
 
-// Admin pipeline for resolving/dismissing reports
 const manageReportsPipeline = viewReportsPipeline
     .use(requireRoleMiddleware('admin'))
 
-// Pipeline for creating reports (any authenticated user)
 const createReportPipeline = MiddlewarePipeline.create()
     .use(loggingMiddleware())
     .use(rateLimitMiddleware(10))
     .use(authMiddleware())
 
-// ============================================
-// Routes Class
-// ============================================
 
 export class ReportRoutes {
     private readonly indexController: IndexReportsController
@@ -75,7 +63,6 @@ export class ReportRoutes {
     constructor(dependencies: ApplicationDependencies) {
         const logger = dependencies.logger?.child({ context: 'Reports' })
 
-        // Use cases
         const reportCreator = new ReportCreator()
         const reportFinder = new ReportFinder()
         const reportLister = new ReportLister()
@@ -83,7 +70,6 @@ export class ReportRoutes {
         const reportDismisser = new ReportDismisser()
         const reportStatsRetriever = new ReportStatsRetriever()
 
-        // Controllers
         this.indexController = new IndexReportsController(reportLister, logger)
         this.showController = new ShowReportController(reportFinder, logger)
         this.storeController = new StoreReportController(reportCreator, logger)
@@ -93,7 +79,7 @@ export class ReportRoutes {
     }
 
     public map(server: Express): void {
-        // GET /api/v1/reports - List all reports (moderators)
+
         server.get(
             this.basePath,
             ...viewReportsPipeline.getHandlers(),
@@ -101,7 +87,7 @@ export class ReportRoutes {
                 this.indexController.handle(req, res, next),
         )
 
-        // GET /api/v1/reports/stats - Get report statistics (moderators)
+
         server.get(
             `${this.basePath}/stats`,
             ...viewReportsPipeline.getHandlers(),
@@ -109,7 +95,7 @@ export class ReportRoutes {
                 this.statsController.handle(req, res, next),
         )
 
-        // GET /api/v1/reports/:id - Get single report (moderators)
+
         server.get(
             `${this.basePath}/:id`,
             ...viewReportsPipeline.getHandlers(),
@@ -117,7 +103,7 @@ export class ReportRoutes {
                 this.showController.handle(req, res, next),
         )
 
-        // POST /api/v1/reports - Create a report (authenticated users)
+
         server.post(
             this.basePath,
             ...createReportPipeline.getHandlers(),
@@ -125,7 +111,7 @@ export class ReportRoutes {
                 this.storeController.handle(req, res, next),
         )
 
-        // POST /api/v1/reports/:id/resolve - Resolve a report (admins)
+
         server.post(
             `${this.basePath}/:id/resolve`,
             ...manageReportsPipeline.getHandlers(),
@@ -133,7 +119,7 @@ export class ReportRoutes {
                 this.resolveController.handle(req, res, next),
         )
 
-        // POST /api/v1/reports/:id/dismiss - Dismiss a report (admins)
+
         server.post(
             `${this.basePath}/:id/dismiss`,
             ...manageReportsPipeline.getHandlers(),

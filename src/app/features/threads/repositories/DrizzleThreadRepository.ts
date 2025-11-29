@@ -6,9 +6,7 @@ import { posts, threads } from '@/config/schema'
 import type { Thread } from '@/types'
 import type { ThreadCreationData, ThreadRepository } from './ThreadRepository'
 
-/**
- * Drizzle ORM implementation of ThreadRepository
- */
+
 export class DrizzleThreadRepository implements ThreadRepository {
     constructor(private readonly database: ForumDatabase) {}
 

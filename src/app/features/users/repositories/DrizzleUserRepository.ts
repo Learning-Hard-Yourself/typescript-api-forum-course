@@ -6,9 +6,7 @@ import type { ForumDatabase } from '@/config/database-types'
 import { posts, threads, users } from '@/config/schema'
 import type { UserRepository, UserStats } from './UserRepository'
 
-/**
- * Drizzle ORM implementation of UserRepository
- */
+
 export class DrizzleUserRepository implements UserRepository {
     constructor(private readonly database: ForumDatabase) {}
 

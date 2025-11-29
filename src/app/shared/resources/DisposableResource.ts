@@ -1,6 +1,4 @@
-/**
- * Re-exports all disposable resource classes.
- */
+
 export { DatabaseTransaction } from './DatabaseTransaction'
 export { createAsyncDisposable, createDisposable } from './Disposable'
 export type { AsyncDisposable, Disposable } from './Disposable'

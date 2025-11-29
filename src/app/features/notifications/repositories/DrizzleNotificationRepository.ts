@@ -6,9 +6,7 @@ import type { ForumDatabase } from '@/config/database-types'
 import { notifications } from '@/config/schema'
 import type { NotificationCreationData, NotificationRepository } from './NotificationRepository'
 
-/**
- * Drizzle ORM implementation of NotificationRepository
- */
+
 export class DrizzleNotificationRepository implements NotificationRepository {
     constructor(private readonly database: ForumDatabase) {}
 

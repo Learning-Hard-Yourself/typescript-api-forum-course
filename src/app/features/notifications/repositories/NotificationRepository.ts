@@ -6,9 +6,7 @@ export interface NotificationCreationData {
     data: NotificationPayload
 }
 
-/**
- * Repository interface for Notification entity
- */
+
 export interface NotificationRepository {
     findById(id: string): Promise<Notification | null>
     findByUserId(userId: string): Promise<Notification[]>

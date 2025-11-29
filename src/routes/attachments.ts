@@ -10,10 +10,8 @@ export class AttachmentRoutes {
     private readonly controller: AttachmentsController
 
     public constructor(dependencies: ApplicationDependencies) {
-        // Repository
         const attachmentRepository = new DrizzleAttachmentRepository(dependencies.database)
 
-        // Use cases
         const attachmentCreator = new AttachmentCreator(attachmentRepository)
 
         this.controller = new AttachmentsController(

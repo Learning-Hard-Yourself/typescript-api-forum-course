@@ -14,10 +14,8 @@ export class ProfileRoutes {
     private readonly requireOwnership: ReturnType<typeof createRequireOwnership>
 
     public constructor(dependencies: ApplicationDependencies) {
-        // Repository
         const profileRepository = new DrizzleProfileRepository(dependencies.database)
 
-        // Use cases
         const profileFinder = new ProfileFinder(profileRepository)
         const profileUpdater = new ProfileUpdater(profileRepository)
 

@@ -1,11 +1,4 @@
-/**
- * HTTP Status Codes as an enum.
- * 
- * TypeScript Concept: enum
- * - Enums provide a way to define a set of named constants
- * - Numeric enums are auto-incremented, but we use explicit values
- * - Can be used in switch statements with exhaustiveness checking
- */
+
 export enum HttpStatus {
     // 2xx Success
     OK = 200,
@@ -35,12 +28,7 @@ export enum HttpStatus {
     ServiceUnavailable = 503,
 }
 
-/**
- * TypeScript Concept: const enum
- * - const enums are completely removed during compilation
- * - Values are inlined at usage sites for better performance
- * - Cannot be used with computed members or reverse mapping
- */
+
 export const enum ModerationActionType {
     EditPost = 'EDIT_POST',
     DeletePost = 'DELETE_POST',
@@ -53,9 +41,7 @@ export const enum ModerationActionType {
     BanUser = 'BAN_USER',
 }
 
-/**
- * Helper to get status text from HttpStatus enum
- */
+
 export function getStatusText(status: HttpStatus): string {
     switch (status) {
         case HttpStatus.OK:
@@ -85,23 +71,17 @@ export function getStatusText(status: HttpStatus): string {
     }
 }
 
-/**
- * Check if status is a success code (2xx)
- */
+
 export function isSuccessStatus(status: HttpStatus): boolean {
     return status >= 200 && status < 300
 }
 
-/**
- * Check if status is a client error (4xx)
- */
+
 export function isClientError(status: HttpStatus): boolean {
     return status >= 400 && status < 500
 }
 
-/**
- * Check if status is a server error (5xx)
- */
+
 export function isServerError(status: HttpStatus): boolean {
     return status >= 500 && status < 600
 }

@@ -41,12 +41,10 @@ export class PostRoutes {
     public constructor(dependencies: ApplicationDependencies) {
         const logger = dependencies.logger?.child({ context: 'Posts' })
 
-        // Repositories
         const postRepository = new DrizzlePostRepository(dependencies.database)
         const postEditRepository = new DrizzlePostEditRepository(dependencies.database)
         const threadRepository = new DrizzleThreadRepository(dependencies.database)
 
-        // Use cases
         const postFinder = new PostFinder(postRepository)
         const postCreator = new PostCreator(postRepository, threadRepository)
         const postReplier = new PostReplier(postRepository, threadRepository)

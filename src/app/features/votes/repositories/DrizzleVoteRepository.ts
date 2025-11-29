@@ -6,9 +6,7 @@ import type { ForumDatabase } from '@/config/database-types'
 import { votes } from '@/config/schema'
 import type { VoteRepository } from './VoteRepository'
 
-/**
- * Drizzle ORM implementation of VoteRepository
- */
+
 export class DrizzleVoteRepository implements VoteRepository {
     constructor(private readonly database: ForumDatabase) {}
 

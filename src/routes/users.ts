@@ -18,10 +18,8 @@ export class UserRoutes {
     public constructor(dependencies: ApplicationDependencies) {
         const logger = dependencies.logger?.child({ context: 'Users' })
 
-        // Repository
         const userRepository = new DrizzleUserRepository(dependencies.database)
 
-        // Use cases
         const userUpdater = new UserUpdater(userRepository)
         const userStatsRetriever = new UserStatsRetriever(userRepository)
 

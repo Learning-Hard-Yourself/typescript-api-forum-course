@@ -1,9 +1,6 @@
 import type { Disposable } from './Disposable'
 
-/**
- * A disposable temporary file.
- * Automatically deletes the file when disposed.
- */
+
 export class TemporaryFile implements Disposable {
     private deleted = false
 

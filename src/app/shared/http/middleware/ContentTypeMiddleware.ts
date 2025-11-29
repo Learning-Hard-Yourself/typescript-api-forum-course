@@ -1,9 +1,6 @@
 import type { Handler } from 'express'
 
-/**
- * Middleware to validate Content-Type header for requests with body.
- * Ensures that POST, PUT, and PATCH requests have application/json content type.
- */
+
 export const createContentTypeMiddleware = (): Handler => {
     return (request, response, next) => {
         const methodsWithBody = ['POST', 'PUT', 'PATCH']

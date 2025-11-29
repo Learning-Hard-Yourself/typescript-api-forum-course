@@ -1,9 +1,6 @@
 import type { AsyncDisposable, Disposable } from './Disposable'
 
-/**
- * A disposable database transaction.
- * Automatically rolls back if not committed before disposal.
- */
+
 export class DatabaseTransaction implements Disposable, AsyncDisposable {
     private committed = false
     private rolledBack = false

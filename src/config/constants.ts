@@ -1,11 +1,4 @@
-/**
- * Application constants with type validation using `satisfies`.
- * 
- * TypeScript Concept: satisfies operator (TS 4.9+)
- * - Validates that a value conforms to a type WITHOUT widening it
- * - Preserves literal types while ensuring type safety
- * - Better than type annotation when you want both validation and inference
- */
+
 
 // Define the shape of our configuration
 interface AppConfig {

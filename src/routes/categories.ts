@@ -21,10 +21,8 @@ export class CategoryRoutes {
     public constructor(dependencies: ApplicationDependencies) {
         const logger = dependencies.logger?.child({ context: 'Categories' })
 
-        // Repository
         const categoryRepository = new DrizzleCategoryRepository(dependencies.database)
 
-        // Use cases
         const categoryFinder = new CategoryFinder(categoryRepository)
         const categoryCreator = new CategoryCreator(categoryRepository)
         const categoryLister = new CategoryLister(categoryRepository)

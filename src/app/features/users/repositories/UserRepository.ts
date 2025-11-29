@@ -7,9 +7,7 @@ export interface UserStats {
     lastActive: string | null
 }
 
-/**
- * Repository interface for User entity
- */
+
 export interface UserRepository {
     findById(id: string): Promise<User | null>
     findByEmail(email: string): Promise<User | null>

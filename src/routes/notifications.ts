@@ -11,10 +11,8 @@ export class NotificationRoutes {
     private readonly controller: NotificationsController
 
     public constructor(dependencies: ApplicationDependencies) {
-        // Repository
         const notificationRepository = new DrizzleNotificationRepository(dependencies.database)
 
-        // Use cases
         const notificationLister = new NotificationLister(notificationRepository)
         const notificationMarker = new NotificationMarker(notificationRepository)
 

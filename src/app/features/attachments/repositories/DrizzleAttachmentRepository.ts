@@ -6,9 +6,7 @@ import { attachments } from '@/config/schema'
 import type { Attachment } from '@/types'
 import type { AttachmentRepository } from './AttachmentRepository'
 
-/**
- * Drizzle ORM implementation of AttachmentRepository
- */
+
 export class DrizzleAttachmentRepository implements AttachmentRepository {
     constructor(private readonly database: ForumDatabase) {}
 

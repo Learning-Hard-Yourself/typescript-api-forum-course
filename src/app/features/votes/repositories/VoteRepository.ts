@@ -1,8 +1,6 @@
 import type { Vote, VoteType } from '@/app/features/votes/models/Vote'
 
-/**
- * Repository interface for Vote entity
- */
+
 export interface VoteRepository {
     findById(id: string): Promise<Vote | null>
     findByPostId(postId: string): Promise<Vote[]>

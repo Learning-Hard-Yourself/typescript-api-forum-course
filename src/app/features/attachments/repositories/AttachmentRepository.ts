@@ -1,8 +1,6 @@
 import type { Attachment } from '@/types'
 
-/**
- * Repository interface for Attachment entity
- */
+
 export interface AttachmentRepository {
     findById(id: string): Promise<Attachment | null>
     findByPostId(postId: string): Promise<Attachment[]>

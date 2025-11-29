@@ -14,11 +14,9 @@ export class VoteRoutes {
     private readonly controller: VotesController
 
     public constructor(dependencies: ApplicationDependencies) {
-        // Repositories
         const voteRepository = new DrizzleVoteRepository(dependencies.database)
         const postRepository = new DrizzlePostRepository(dependencies.database)
 
-        // Use cases
         const voteCaster = new VoteCaster(voteRepository, postRepository)
         const voteRemover = new VoteRemover(voteRepository, postRepository)
         const voteRetriever = new VoteRetriever(voteRepository)

@@ -12,9 +12,7 @@ import { ConsoleLogger, type Logger } from '@/app/shared/logging/Logger'
 import { registerRoutes } from '@/routes'
 import type { ApplicationDependencies } from '@/routes/types'
 
-/**
- * Allowed origins for CORS
- */
+
 const CORS_OPTIONS: cors.CorsOptions = {
   origin: process.env.ALLOWED_ORIGINS?.split(',') ?? ['http://localhost:3000', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -51,9 +49,7 @@ export class Application {
     return this.server
   }
 
-  /**
-   * Security middleware configuration
-   */
+  
   private configureSecurityMiddleware(): void {
     // Helmet for security headers
     this.server.use(helmet({

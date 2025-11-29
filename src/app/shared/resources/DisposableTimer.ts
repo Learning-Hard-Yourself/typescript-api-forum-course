@@ -1,8 +1,6 @@
 import type { Disposable } from './Disposable'
 
-/**
- * A disposable timer that can be cancelled.
- */
+
 export class DisposableTimer implements Disposable {
     private timerId: ReturnType<typeof setTimeout> | null = null
     private cancelled = false

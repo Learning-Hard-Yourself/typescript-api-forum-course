@@ -1,9 +1,6 @@
 import type { Disposable } from './Disposable'
 
-/**
- * A disposable lock for exclusive access to a resource.
- * Automatically releases when disposed.
- */
+
 export class ResourceLock implements Disposable {
     private released = false
     private static readonly activeLocks = new Set<string>()

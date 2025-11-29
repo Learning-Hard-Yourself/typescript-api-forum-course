@@ -5,9 +5,7 @@ import { profiles } from '@/config/schema'
 import type { Profile } from '@/types'
 import type { ProfileRepository } from './ProfileRepository'
 
-/**
- * Drizzle ORM implementation of ProfileRepository
- */
+
 export class DrizzleProfileRepository implements ProfileRepository {
     constructor(private readonly database: ForumDatabase) {}
 

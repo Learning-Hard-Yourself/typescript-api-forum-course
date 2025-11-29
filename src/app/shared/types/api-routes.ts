@@ -1,12 +1,4 @@
-/**
- * Template Literal Types for API Routes.
- * 
- * TypeScript Concepts:
- * - Template literal types - create types from string templates
- * - Uppercase<T>, Lowercase<T>, Capitalize<T>, Uncapitalize<T>
- * - Pattern matching with template literals
- * - Conditional types with infer in template literals
- */
+
 
 // ============================================
 // API Version and Resource Types
@@ -54,10 +46,7 @@ export type LowercaseHttpMethod = Lowercase<HttpMethod>
 // Route Parameter Extraction
 // ============================================
 
-/**
- * Extracts route parameters from a path string
- * '/users/:id/posts/:postId' -> 'id' | 'postId'
- */
+
 export type ExtractRouteParams<T extends string> = 
     T extends `${string}:${infer Param}/${infer Rest}`
         ? Param | ExtractRouteParams<`/${Rest}`>
@@ -72,9 +61,7 @@ export type UserPostParams = ExtractRouteParams<'/users/:userId/posts/:postId'>
 export type ThreadParams = ExtractRouteParams<'/threads/:threadId'>
 // Result: 'threadId'
 
-/**
- * Creates a params object type from a route
- */
+
 export type RouteParams<T extends string> = {
     [K in ExtractRouteParams<T>]: string
 }
@@ -121,23 +108,17 @@ export type AppRoutes = UserRoutes | PostRoutes | ThreadRoutes | AuthRoutes
 // Route Builders
 // ============================================
 
-/**
- * Build a user route with ID
- */
+
 export function buildUserRoute(userId: string): `/api/v1/users/${string}` {
     return `/api/v1/users/${userId}`
 }
 
-/**
- * Build a post route with ID
- */
+
 export function buildPostRoute(postId: string): `/api/v1/posts/${string}` {
     return `/api/v1/posts/${postId}`
 }
 
-/**
- * Build a thread route with ID
- */
+
 export function buildThreadRoute(threadId: string): `/api/v1/threads/${string}` {
     return `/api/v1/threads/${threadId}`
 }
@@ -167,14 +148,10 @@ export type QueryString = `?${QueryParam}=${string}` | `?${QueryParam}=${string}
 // Validation Patterns
 // ============================================
 
-/**
- * Check if a string starts with 'api'
- */
+
 export type IsApiRoute<T extends string> = T extends `/api/${string}` ? true : false
 
-/**
- * Check if route has version
- */
+
 export type HasVersion<T extends string> = T extends `/api/v${number}/${string}` ? true : false
 
 // Type tests - exported for documentation

@@ -40,6 +40,28 @@ CREATE TABLE `categories` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `categories_slug_unique` ON `categories` (`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `categories_parent_idx` ON `categories` (`parent_id`);--> statement-breakpoint
+CREATE TABLE `notifications` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`type` text NOT NULL,
+	`data` text NOT NULL,
+	`read_at` text,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `post_edits` (
+	`id` text PRIMARY KEY NOT NULL,
+	`post_id` text NOT NULL,
+	`editor_id` text NOT NULL,
+	`previous_content` text NOT NULL,
+	`new_content` text NOT NULL,
+	`edit_reason` text,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`post_id`) REFERENCES `posts`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`editor_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `posts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`thread_id` text NOT NULL,
@@ -47,12 +69,16 @@ CREATE TABLE `posts` (
 	`author_id` text NOT NULL,
 	`content` text NOT NULL,
 	`vote_score` integer DEFAULT 0 NOT NULL,
-	`is_edited` integer DEFAULT 0 NOT NULL,
-	`is_deleted` integer DEFAULT 0 NOT NULL,
+	`is_edited` integer DEFAULT false NOT NULL,
+	`is_deleted` integer DEFAULT false NOT NULL,
+	`deleted_at` text,
+	`deleted_by` text,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`thread_id`) REFERENCES `threads`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`author_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`parent_post_id`) REFERENCES `posts`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`author_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`deleted_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `profiles` (
@@ -84,8 +110,8 @@ CREATE TABLE `threads` (
 	`author_id` text NOT NULL,
 	`title` text NOT NULL,
 	`slug` text,
-	`is_pinned` integer DEFAULT 0 NOT NULL,
-	`is_locked` integer DEFAULT 0 NOT NULL,
+	`is_pinned` integer DEFAULT false NOT NULL,
+	`is_locked` integer DEFAULT false NOT NULL,
 	`view_count` integer DEFAULT 0 NOT NULL,
 	`reply_count` integer DEFAULT 0 NOT NULL,
 	`last_post_id` text,
@@ -102,7 +128,7 @@ CREATE TABLE `users` (
 	`email` text NOT NULL,
 	`name` text,
 	`display_name` text NOT NULL,
-	`email_verified` integer DEFAULT 0 NOT NULL,
+	`email_verified` integer DEFAULT false NOT NULL,
 	`password_hash` text,
 	`image` text,
 	`avatar_url` text,
@@ -122,3 +148,16 @@ CREATE TABLE `verifications` (
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+--> statement-breakpoint
+CREATE TABLE `votes` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`post_id` text NOT NULL,
+	`vote_type` text NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`post_id`) REFERENCES `posts`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `votes_user_id_post_id_unique` ON `votes` (`user_id`,`post_id`);

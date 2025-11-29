@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import type { AttachmentCreationRequest } from '@/app/features/attachments/requests/AttachmentCreationRequest'
-import type { AttachmentResource } from '@/app/features/attachments/resources/AttachmentResource'
+import { AttachmentResource } from '@/app/features/attachments/resources/AttachmentResource'
 import type { AttachmentCreator } from '@/app/features/attachments/use-cases/AttachmentCreator'
 import { PresignedUrlGenerator } from '@/app/features/attachments/use-cases/PresignedUrlGenerator'
 import { ValidationError } from '@/app/shared/errors/ValidationError'
@@ -13,7 +13,6 @@ export class AttachmentsController {
 
     public constructor(
         private readonly creationRequest: AttachmentCreationRequest,
-        private readonly attachmentResource: AttachmentResource,
         private readonly attachmentCreator: AttachmentCreator,
         private readonly logger?: Logger,
     ) {}
@@ -43,13 +42,13 @@ export class AttachmentsController {
             }
 
             const attachment = await this.attachmentCreator.execute({ attributes: { ...attributes, url } })
-            const data = this.attachmentResource.toResponse(attachment)
+
             this.logger?.info('Attachment created', { attachmentId: attachment.id })
 
             headers(response)
                 .location({ basePath: '/api/v1/attachments', resourceId: attachment.id })
 
-            response.status(201).json({ data })
+            response.status(201).json(new AttachmentResource(attachment).toResponse())
         } catch (error) {
             if (error instanceof ValidationError) {
                 this.logger?.warn('Validation failed on attachment creation', { errors: error.details })

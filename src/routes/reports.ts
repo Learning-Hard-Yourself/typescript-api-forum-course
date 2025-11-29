@@ -7,7 +7,12 @@
  * - HttpStatus enum
  */
 
-import { ReportsController } from '@/app/features/reports/controllers/ReportsController'
+import { DismissReportController } from '@/app/features/reports/controllers/DismissReportController'
+import { IndexReportsController } from '@/app/features/reports/controllers/IndexReportsController'
+import { ResolveReportController } from '@/app/features/reports/controllers/ResolveReportController'
+import { ShowReportController } from '@/app/features/reports/controllers/ShowReportController'
+import { StatsReportsController } from '@/app/features/reports/controllers/StatsReportsController'
+import { StoreReportController } from '@/app/features/reports/controllers/StoreReportController'
 import { ReportCreator } from '@/app/features/reports/use-cases/ReportCreator'
 import { ReportDismisser } from '@/app/features/reports/use-cases/ReportDismisser'
 import { ReportFinder } from '@/app/features/reports/use-cases/ReportFinder'
@@ -59,11 +64,18 @@ const createReportPipeline = MiddlewarePipeline.create()
 // ============================================
 
 export class ReportRoutes {
-    private readonly controller: ReportsController
+    private readonly indexController: IndexReportsController
+    private readonly showController: ShowReportController
+    private readonly storeController: StoreReportController
+    private readonly resolveController: ResolveReportController
+    private readonly dismissController: DismissReportController
+    private readonly statsController: StatsReportsController
     private readonly basePath: BaseReportRoute = '/api/v1/reports'
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    constructor(_dependencies: ApplicationDependencies) {
+    constructor(dependencies: ApplicationDependencies) {
+        const logger = dependencies.logger?.child({ context: 'Reports' })
+
+        // Use cases
         const reportCreator = new ReportCreator()
         const reportFinder = new ReportFinder()
         const reportLister = new ReportLister()
@@ -71,14 +83,13 @@ export class ReportRoutes {
         const reportDismisser = new ReportDismisser()
         const reportStatsRetriever = new ReportStatsRetriever()
 
-        this.controller = new ReportsController(
-            reportCreator,
-            reportFinder,
-            reportLister,
-            reportResolver,
-            reportDismisser,
-            reportStatsRetriever,
-        )
+        // Controllers
+        this.indexController = new IndexReportsController(reportLister, logger)
+        this.showController = new ShowReportController(reportFinder, logger)
+        this.storeController = new StoreReportController(reportCreator, logger)
+        this.resolveController = new ResolveReportController(reportResolver, logger)
+        this.dismissController = new DismissReportController(reportDismisser, logger)
+        this.statsController = new StatsReportsController(reportStatsRetriever, logger)
     }
 
     public map(server: Express): void {
@@ -87,7 +98,7 @@ export class ReportRoutes {
             this.basePath,
             ...viewReportsPipeline.getHandlers(),
             (req: Request, res: Response, next: NextFunction) => 
-                this.controller.index(req, res, next),
+                this.indexController.handle(req, res, next),
         )
 
         // GET /api/v1/reports/stats - Get report statistics (moderators)
@@ -95,7 +106,7 @@ export class ReportRoutes {
             `${this.basePath}/stats`,
             ...viewReportsPipeline.getHandlers(),
             (req: Request, res: Response, next: NextFunction) => 
-                this.controller.stats(req, res, next),
+                this.statsController.handle(req, res, next),
         )
 
         // GET /api/v1/reports/:id - Get single report (moderators)
@@ -103,7 +114,7 @@ export class ReportRoutes {
             `${this.basePath}/:id`,
             ...viewReportsPipeline.getHandlers(),
             (req: Request, res: Response, next: NextFunction) => 
-                this.controller.show(req, res, next),
+                this.showController.handle(req, res, next),
         )
 
         // POST /api/v1/reports - Create a report (authenticated users)
@@ -111,7 +122,7 @@ export class ReportRoutes {
             this.basePath,
             ...createReportPipeline.getHandlers(),
             (req: Request, res: Response, next: NextFunction) => 
-                this.controller.create(req, res, next),
+                this.storeController.handle(req, res, next),
         )
 
         // POST /api/v1/reports/:id/resolve - Resolve a report (admins)
@@ -119,7 +130,7 @@ export class ReportRoutes {
             `${this.basePath}/:id/resolve`,
             ...manageReportsPipeline.getHandlers(),
             (req: Request, res: Response, next: NextFunction) => 
-                this.controller.resolve(req, res, next),
+                this.resolveController.handle(req, res, next),
         )
 
         // POST /api/v1/reports/:id/dismiss - Dismiss a report (admins)
@@ -127,7 +138,7 @@ export class ReportRoutes {
             `${this.basePath}/:id/dismiss`,
             ...manageReportsPipeline.getHandlers(),
             (req: Request, res: Response, next: NextFunction) => 
-                this.controller.dismiss(req, res, next),
+                this.dismissController.handle(req, res, next),
         )
     }
 }

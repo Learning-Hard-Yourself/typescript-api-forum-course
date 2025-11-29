@@ -1,9 +1,7 @@
-import { and, eq } from 'drizzle-orm'
-
+import type { PostRepository } from '@/app/features/posts/repositories/PostRepository'
 import { calculateVoteDelta } from '@/app/features/votes/models/Vote'
 import { NotFoundError } from '@/app/shared/errors/NotFoundError'
-import type { ForumDatabase } from '@/config/database-types'
-import { posts, votes } from '@/config/schema'
+import type { VoteRepository } from '../repositories/VoteRepository'
 
 export interface VoteRemoverInput {
     postId: string
@@ -16,22 +14,21 @@ export interface VoteRemoverResult {
 }
 
 export class VoteRemover {
-    public constructor(private readonly database: ForumDatabase) {}
+    public constructor(
+        private readonly voteRepository: VoteRepository,
+        private readonly postRepository: PostRepository,
+    ) {}
 
     public async execute(input: VoteRemoverInput): Promise<VoteRemoverResult> {
         const { postId, userId } = input
 
-        const post = await this.database.query.posts.findFirst({
-            where: eq(posts.id, postId),
-        })
+        const post = await this.postRepository.findById(postId)
 
         if (!post) {
             throw new NotFoundError(`Post with ID ${postId} not found`)
         }
 
-        const existingVote = await this.database.query.votes.findFirst({
-            where: and(eq(votes.postId, postId), eq(votes.userId, userId)),
-        })
+        const existingVote = await this.voteRepository.findByPostAndUser(postId, userId)
 
         if (!existingVote) {
             return { removed: false, score: post.voteScore }
@@ -39,16 +36,11 @@ export class VoteRemover {
 
         const delta = calculateVoteDelta(existingVote, null)
 
-        await this.database.delete(votes).where(eq(votes.id, existingVote.id))
+        await this.voteRepository.delete(existingVote.id)
 
-        const [updatedPost] = await this.database
-            .update(posts)
-            .set({
-                voteScore: post.voteScore + delta,
-                updatedAt: new Date().toISOString(),
-            })
-            .where(eq(posts.id, postId))
-            .returning()
+        const updatedPost = await this.postRepository.update(postId, {
+            voteScore: post.voteScore + delta,
+        })
 
         return {
             removed: true,

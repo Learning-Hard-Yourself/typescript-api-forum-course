@@ -8,6 +8,7 @@ import { StoreThreadController } from '@/app/features/threads/controllers/StoreT
 import { UnlockThreadController } from '@/app/features/threads/controllers/UnlockThreadController'
 import { UnpinThreadController } from '@/app/features/threads/controllers/UnpinThreadController'
 import { UpdateThreadController } from '@/app/features/threads/controllers/UpdateThreadController'
+import { DrizzleThreadRepository } from '@/app/features/threads/repositories/DrizzleThreadRepository'
 import { ThreadCreationRequest } from '@/app/features/threads/requests/ThreadCreationRequest'
 import { ThreadCreator } from '@/app/features/threads/use-cases/ThreadCreator'
 import { ThreadCursorLister } from '@/app/features/threads/use-cases/ThreadCursorLister'
@@ -36,11 +37,15 @@ export class ThreadRoutes {
     public constructor(dependencies: ApplicationDependencies) {
         const logger = dependencies.logger?.child({ context: 'Threads' })
 
-        const threadFinder = new ThreadFinder(dependencies.database)
-        const threadCreator = new ThreadCreator(dependencies.database)
-        const threadUpdater = new ThreadUpdater(dependencies.database)
-        const threadPinner = new ThreadPinner(dependencies.database)
-        const threadLocker = new ThreadLocker(dependencies.database)
+        // Repository
+        const threadRepository = new DrizzleThreadRepository(dependencies.database)
+
+        // Use cases
+        const threadFinder = new ThreadFinder(threadRepository)
+        const threadCreator = new ThreadCreator(threadRepository)
+        const threadUpdater = new ThreadUpdater(threadRepository)
+        const threadPinner = new ThreadPinner(threadRepository)
+        const threadLocker = new ThreadLocker(threadRepository)
         const threadCursorLister = new ThreadCursorLister(dependencies.database)
 
         this.indexController = new IndexThreadsCursorController(threadCursorLister, logger)

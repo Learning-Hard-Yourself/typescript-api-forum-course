@@ -1,7 +1,4 @@
-import { eq } from 'drizzle-orm'
-
-import type { ForumDatabase } from '@/config/database-types'
-import { notifications } from '@/config/schema'
+import type { NotificationRepository } from '../repositories/NotificationRepository'
 
 export interface NotificationMarkerInput {
     notificationId: string
@@ -9,12 +6,9 @@ export interface NotificationMarkerInput {
 }
 
 export class NotificationMarker {
-    public constructor(private readonly database: ForumDatabase) {}
+    public constructor(private readonly notificationRepository: NotificationRepository) {}
 
     public async execute(input: NotificationMarkerInput): Promise<void> {
-        await this.database
-            .update(notifications)
-            .set({ readAt: new Date().toISOString() })
-            .where(eq(notifications.id, input.notificationId))
+        await this.notificationRepository.markAsRead(input.notificationId)
     }
 }

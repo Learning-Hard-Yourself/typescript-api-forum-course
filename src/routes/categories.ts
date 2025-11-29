@@ -3,6 +3,7 @@ import type { Express } from 'express'
 import { IndexCategoriesController } from '@/app/features/categories/controllers/IndexCategoriesController'
 import { ShowCategoryController } from '@/app/features/categories/controllers/ShowCategoryController'
 import { StoreCategoryController } from '@/app/features/categories/controllers/StoreCategoryController'
+import { DrizzleCategoryRepository } from '@/app/features/categories/repositories/DrizzleCategoryRepository'
 import { CategoryCreationRequest } from '@/app/features/categories/requests/CategoryCreationRequest'
 import { CategoryCreator } from '@/app/features/categories/use-cases/CategoryCreator'
 import { CategoryFinder } from '@/app/features/categories/use-cases/CategoryFinder'
@@ -20,9 +21,13 @@ export class CategoryRoutes {
     public constructor(dependencies: ApplicationDependencies) {
         const logger = dependencies.logger?.child({ context: 'Categories' })
 
-        const categoryFinder = new CategoryFinder(dependencies.database)
-        const categoryCreator = new CategoryCreator(dependencies.database)
-        const categoryLister = new CategoryLister(dependencies.database)
+        // Repository
+        const categoryRepository = new DrizzleCategoryRepository(dependencies.database)
+
+        // Use cases
+        const categoryFinder = new CategoryFinder(categoryRepository)
+        const categoryCreator = new CategoryCreator(categoryRepository)
+        const categoryLister = new CategoryLister(categoryRepository)
 
         this.indexController = new IndexCategoriesController(categoryLister, logger)
         this.showController = new ShowCategoryController(categoryFinder, logger)

@@ -1,9 +1,6 @@
-import { eq } from 'drizzle-orm'
-
 import type { ProfileUpdateAttributes } from '@/app/features/profiles/requests/ProfileUpdateRequest'
-import type { ForumDatabase } from '@/config/database-types'
-import { profiles } from '@/config/schema'
 import type { Profile } from '@/types'
+import type { ProfileRepository } from '../repositories/ProfileRepository'
 
 export interface ProfileUpdaterInput {
     userId: string
@@ -11,35 +8,24 @@ export interface ProfileUpdaterInput {
 }
 
 export class ProfileUpdater {
-    public constructor(private readonly database: ForumDatabase) {}
+    public constructor(private readonly profileRepository: ProfileRepository) {}
 
     public async execute(input: ProfileUpdaterInput): Promise<Profile> {
         const { userId, attributes } = input
 
-        const existing = await this.database
-            .select()
-            .from(profiles)
-            .where(eq(profiles.userId, userId))
-            .limit(1)
+        const existing = await this.profileRepository.findByUserId(userId)
 
-        if (existing.length === 0) {
-            await this.database.insert(profiles).values({
+        if (!existing) {
+            return this.profileRepository.save({
                 userId,
-                ...attributes,
+                bio: attributes.bio ?? null,
+                location: attributes.location ?? null,
+                website: attributes.website ?? null,
+                twitterHandle: attributes.twitterHandle ?? null,
+                githubUsername: attributes.githubUsername ?? null,
             })
-        } else {
-            await this.database
-                .update(profiles)
-                .set(attributes)
-                .where(eq(profiles.userId, userId))
         }
 
-        const [profile] = await this.database
-            .select()
-            .from(profiles)
-            .where(eq(profiles.userId, userId))
-            .limit(1)
-
-        return profile as Profile
+        return this.profileRepository.update(userId, attributes)
     }
 }

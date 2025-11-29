@@ -1,6 +1,7 @@
 import type { Express } from 'express'
 
 import { ProfilesController } from '@/app/features/profiles/controllers/ProfilesController'
+import { DrizzleProfileRepository } from '@/app/features/profiles/repositories/DrizzleProfileRepository'
 import { ProfileUpdateRequest } from '@/app/features/profiles/requests/ProfileUpdateRequest'
 import { ProfileFinder } from '@/app/features/profiles/use-cases/ProfileFinder'
 import { ProfileUpdater } from '@/app/features/profiles/use-cases/ProfileUpdater'
@@ -13,8 +14,12 @@ export class ProfileRoutes {
     private readonly requireOwnership: ReturnType<typeof createRequireOwnership>
 
     public constructor(dependencies: ApplicationDependencies) {
-        const profileFinder = new ProfileFinder(dependencies.database)
-        const profileUpdater = new ProfileUpdater(dependencies.database)
+        // Repository
+        const profileRepository = new DrizzleProfileRepository(dependencies.database)
+
+        // Use cases
+        const profileFinder = new ProfileFinder(profileRepository)
+        const profileUpdater = new ProfileUpdater(profileRepository)
 
         this.controller = new ProfilesController(
             new ProfileUpdateRequest(),

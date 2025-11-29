@@ -50,7 +50,7 @@ export class DrizzleVoteRepository implements VoteRepository {
         return (vote as Vote) ?? null
     }
 
-    async create(vote: Omit<Vote, 'id'>): Promise<Vote> {
+    async save(vote: Omit<Vote, 'id'>): Promise<Vote> {
         const now = new Date().toISOString()
         const [created] = await this.database
             .insert(votes)

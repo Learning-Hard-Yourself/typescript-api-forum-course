@@ -2,9 +2,9 @@ import { eq, sql } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 
 import type { ForumDatabase } from '@/config/database-types'
-import { threads } from '@/config/schema'
+import { posts, threads } from '@/config/schema'
 import type { Thread } from '@/types'
-import type { ThreadRepository } from './ThreadRepository'
+import type { ThreadCreationData, ThreadRepository } from './ThreadRepository'
 
 /**
  * Drizzle ORM implementation of ThreadRepository
@@ -95,5 +95,68 @@ export class DrizzleThreadRepository implements ThreadRepository {
                 updatedAt: new Date().toISOString(),
             })
             .where(eq(threads.id, id))
+    }
+
+    async saveWithInitialPost(data: ThreadCreationData): Promise<Thread> {
+        const threadId = uuidv7()
+        const postId = uuidv7()
+        const timestamp = new Date().toISOString()
+
+        const slug = this.generateSlug(data.title, data.slug)
+
+        // Insert thread
+        await this.database.insert(threads).values({
+            id: threadId,
+            categoryId: data.categoryId,
+            authorId: data.authorId,
+            title: data.title,
+            slug,
+            isPinned: false,
+            isLocked: false,
+            viewCount: 0,
+            replyCount: 0,
+            lastPostId: null,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+        })
+
+        // Insert initial post
+        await this.database.insert(posts).values({
+            id: postId,
+            threadId,
+            parentPostId: null,
+            authorId: data.authorId,
+            content: data.content,
+            voteScore: 0,
+            isEdited: false,
+            isDeleted: false,
+            deletedAt: null,
+            deletedBy: null,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+        })
+
+        // Update thread with last post
+        await this.database
+            .update(threads)
+            .set({ lastPostId: postId })
+            .where(eq(threads.id, threadId))
+
+        const thread = await this.findById(threadId)
+
+        if (!thread) {
+            throw new Error('Thread could not be created')
+        }
+
+        return thread
+    }
+
+    private generateSlug(title: string, providedSlug?: string): string {
+        if (providedSlug) return providedSlug
+
+        return title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
     }
 }

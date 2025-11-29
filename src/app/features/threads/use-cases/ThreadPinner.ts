@@ -1,10 +1,7 @@
-import { eq } from 'drizzle-orm'
-
 import { type UserRole, assertIsAdminOrModerator } from '@/app/features/threads/models/ThreadUpdate'
-import { NotFoundError } from '@/app/shared/errors'
-import type { ForumDatabase } from '@/config/database-types'
-import { threads } from '@/config/schema'
+import { NotFoundError } from '@/app/shared/errors/NotFoundError'
 import type { Thread } from '@/types'
+import type { ThreadRepository } from '../repositories/ThreadRepository'
 
 export interface ThreadPinnerInput {
     threadId: string
@@ -13,34 +10,19 @@ export interface ThreadPinnerInput {
 }
 
 export class ThreadPinner {
-    public constructor(private readonly database: ForumDatabase) {}
+    public constructor(private readonly threadRepository: ThreadRepository) {}
 
     public async execute(input: ThreadPinnerInput): Promise<Thread> {
         const { threadId, userRole, pin } = input
 
         assertIsAdminOrModerator(userRole)
 
-        const thread = await this.database.query.threads.findFirst({
-            where: eq(threads.id, threadId),
-        })
+        const thread = await this.threadRepository.findById(threadId)
 
         if (!thread) {
             throw new NotFoundError(`Thread with ID ${threadId} not found`)
         }
 
-        const [updatedThread] = await this.database
-            .update(threads)
-            .set({
-                isPinned: pin,
-                updatedAt: new Date().toISOString(),
-            })
-            .where(eq(threads.id, threadId))
-            .returning()
-
-        if (!updatedThread) {
-            throw new Error('Failed to update thread pin status')
-        }
-
-        return updatedThread as Thread
+        return this.threadRepository.update(threadId, { isPinned: pin })
     }
 }

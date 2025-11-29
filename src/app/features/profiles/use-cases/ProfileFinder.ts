@@ -1,28 +1,21 @@
-import { eq } from 'drizzle-orm'
-
 import { NotFoundError } from '@/app/shared/errors/NotFoundError'
-import type { ForumDatabase } from '@/config/database-types'
-import { profiles } from '@/config/schema'
 import type { Profile } from '@/types'
+import type { ProfileRepository } from '../repositories/ProfileRepository'
 
 export interface ProfileFinderInput {
     userId: string
 }
 
 export class ProfileFinder {
-    public constructor(private readonly database: ForumDatabase) {}
+    public constructor(private readonly profileRepository: ProfileRepository) {}
 
     public async execute(input: ProfileFinderInput): Promise<Profile> {
-        const [profile] = await this.database
-            .select()
-            .from(profiles)
-            .where(eq(profiles.userId, input.userId))
-            .limit(1)
+        const profile = await this.profileRepository.findByUserId(input.userId)
 
         if (!profile) {
             throw new NotFoundError('Profile not found')
         }
 
-        return profile as Profile
+        return profile
     }
 }

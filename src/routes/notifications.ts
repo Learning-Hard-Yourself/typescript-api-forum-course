@@ -1,6 +1,7 @@
 import type { Express } from 'express'
 
 import { NotificationsController } from '@/app/features/notifications/controllers/NotificationsController'
+import { DrizzleNotificationRepository } from '@/app/features/notifications/repositories/DrizzleNotificationRepository'
 import { NotificationLister } from '@/app/features/notifications/use-cases/NotificationLister'
 import { NotificationMarker } from '@/app/features/notifications/use-cases/NotificationMarker'
 import { authMiddleware } from '@/app/shared/http/middleware/AuthMiddleware'
@@ -10,8 +11,12 @@ export class NotificationRoutes {
     private readonly controller: NotificationsController
 
     public constructor(dependencies: ApplicationDependencies) {
-        const notificationLister = new NotificationLister(dependencies.database)
-        const notificationMarker = new NotificationMarker(dependencies.database)
+        // Repository
+        const notificationRepository = new DrizzleNotificationRepository(dependencies.database)
+
+        // Use cases
+        const notificationLister = new NotificationLister(notificationRepository)
+        const notificationMarker = new NotificationMarker(notificationRepository)
 
         this.controller = new NotificationsController(
             notificationLister,

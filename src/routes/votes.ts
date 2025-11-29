@@ -1,6 +1,8 @@
 import type { Express } from 'express'
 
+import { DrizzlePostRepository } from '@/app/features/posts/repositories/DrizzlePostRepository'
 import { VotesController } from '@/app/features/votes/controllers/VotesController'
+import { DrizzleVoteRepository } from '@/app/features/votes/repositories/DrizzleVoteRepository'
 import { VoteRequest } from '@/app/features/votes/requests/VoteRequest'
 import { VoteCaster } from '@/app/features/votes/use-cases/VoteCaster'
 import { VoteRemover } from '@/app/features/votes/use-cases/VoteRemover'
@@ -12,9 +14,14 @@ export class VoteRoutes {
     private readonly controller: VotesController
 
     public constructor(dependencies: ApplicationDependencies) {
-        const voteCaster = new VoteCaster(dependencies.database)
-        const voteRemover = new VoteRemover(dependencies.database)
-        const voteRetriever = new VoteRetriever(dependencies.database)
+        // Repositories
+        const voteRepository = new DrizzleVoteRepository(dependencies.database)
+        const postRepository = new DrizzlePostRepository(dependencies.database)
+
+        // Use cases
+        const voteCaster = new VoteCaster(voteRepository, postRepository)
+        const voteRemover = new VoteRemover(voteRepository, postRepository)
+        const voteRetriever = new VoteRetriever(voteRepository)
 
         this.controller = new VotesController(
             new VoteRequest(),

@@ -1,15 +1,12 @@
-import { eq } from 'drizzle-orm'
-
 import {
     type ThreadUpdatePayload,
     type UserRole,
     assertCanUpdate,
     filterUpdateByRole,
 } from '@/app/features/threads/models/ThreadUpdate'
-import { NotFoundError } from '@/app/shared/errors'
-import type { ForumDatabase } from '@/config/database-types'
-import { threads } from '@/config/schema'
+import { NotFoundError } from '@/app/shared/errors/NotFoundError'
 import type { Thread } from '@/types'
+import type { ThreadRepository } from '../repositories/ThreadRepository'
 
 export interface ThreadUpdaterInput {
     threadId: string
@@ -19,14 +16,12 @@ export interface ThreadUpdaterInput {
 }
 
 export class ThreadUpdater {
-    public constructor(private readonly database: ForumDatabase) {}
+    public constructor(private readonly threadRepository: ThreadRepository) {}
 
     public async execute(input: ThreadUpdaterInput): Promise<Thread> {
         const { threadId, userId, userRole, updateData } = input
 
-        const thread = await this.database.query.threads.findFirst({
-            where: eq(threads.id, threadId),
-        })
+        const thread = await this.threadRepository.findById(threadId)
 
         if (!thread) {
             throw new NotFoundError(`Thread with ID ${threadId} not found`)
@@ -37,19 +32,6 @@ export class ThreadUpdater {
 
         const allowedUpdate = filterUpdateByRole(userRole, updateData)
 
-        const [updatedThread] = await this.database
-            .update(threads)
-            .set({
-                ...allowedUpdate,
-                updatedAt: new Date().toISOString(),
-            })
-            .where(eq(threads.id, threadId))
-            .returning()
-
-        if (!updatedThread) {
-            throw new Error('Failed to update thread')
-        }
-
-        return updatedThread as Thread
+        return this.threadRepository.update(threadId, allowedUpdate)
     }
 }

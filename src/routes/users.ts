@@ -2,6 +2,7 @@ import type { Express } from 'express'
 
 import { StatsUserController } from '@/app/features/users/controllers/StatsUserController'
 import { UpdateUserController } from '@/app/features/users/controllers/UpdateUserController'
+import { DrizzleUserRepository } from '@/app/features/users/repositories/DrizzleUserRepository'
 import { UserUpdateRequest } from '@/app/features/users/requests/UserUpdateRequest'
 import { UserStatsRetriever } from '@/app/features/users/use-cases/UserStatsRetriever'
 import { UserUpdater } from '@/app/features/users/use-cases/UserUpdater'
@@ -15,9 +16,14 @@ export class UserRoutes {
     private readonly requireOwnership: ReturnType<typeof createRequireOwnership>
 
     public constructor(dependencies: ApplicationDependencies) {
-        const userUpdater = new UserUpdater(dependencies.database)
-        const userStatsRetriever = new UserStatsRetriever(dependencies.database)
         const logger = dependencies.logger?.child({ context: 'Users' })
+
+        // Repository
+        const userRepository = new DrizzleUserRepository(dependencies.database)
+
+        // Use cases
+        const userUpdater = new UserUpdater(userRepository)
+        const userStatsRetriever = new UserStatsRetriever(userRepository)
 
         this.updateController = new UpdateUserController(new UserUpdateRequest(), userUpdater, logger)
         this.statsController = new StatsUserController(userStatsRetriever, logger)

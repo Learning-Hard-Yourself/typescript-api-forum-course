@@ -10,7 +10,7 @@ describe('Notifications', () => {
     it('allows retrieving user notifications', async () => {
         const context = await createTestApplication()
 
-        // 1. Authenticate user
+        
         const cookie = await authenticateUser(context.app, {
             username: 'user',
             email: 'user@example.com',
@@ -18,11 +18,11 @@ describe('Notifications', () => {
             password: 'SecurePassword123!',
         })
 
-        // Get user ID
+        
         const [user] = await context.database.select().from(users).where(eq(users.email, 'user@example.com'))
         const userId = user.id
 
-        // 2. Create Notification directly in DB (simulating service call)
+        
         const notificationId = uuidv7()
         await context.database.insert(notifications).values({
             id: notificationId,
@@ -32,12 +32,12 @@ describe('Notifications', () => {
             createdAt: new Date().toISOString(),
         })
 
-        // 3. Get Notifications (authenticated)
+        
         const response = await authenticatedRequest(context.app, cookie)
             .get('/api/v1/notifications')
             .expect(200)
 
-        // Verify HTTP headers
+        
         expect(response.headers['x-request-id']).toBeDefined()
 
         expect(response.body.data).toHaveLength(1)
@@ -48,7 +48,7 @@ describe('Notifications', () => {
     it('allows marking notification as read', async () => {
         const context = await createTestApplication()
 
-        // 1. Authenticate user
+        
         const cookie = await authenticateUser(context.app, {
             username: 'user2',
             email: 'user2@example.com',
@@ -56,7 +56,7 @@ describe('Notifications', () => {
             password: 'SecurePassword123!',
         })
 
-        // Get user ID
+        
         const [user] = await context.database.select().from(users).where(eq(users.email, 'user2@example.com'))
         const userId = user.id
 
@@ -69,12 +69,12 @@ describe('Notifications', () => {
             createdAt: new Date().toISOString(),
         })
 
-        // 2. Mark as Read (authenticated)
+        
         await authenticatedRequest(context.app, cookie)
             .post(`/api/v1/notifications/${notificationId}/read`)
             .expect(204)
 
-        // 3. Verify DB
+        
         const [notification] = await context.database
             .select()
             .from(notifications)

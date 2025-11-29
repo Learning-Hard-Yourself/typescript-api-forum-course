@@ -10,7 +10,7 @@ describe('POST /api/categories', () => {
     it('creates a new category (admin only)', async () => {
         const context = await createTestApplication()
 
-        // First, register a user and make them admin
+        
         const registerResponse = await request(context.app)
             .post('/api/v1/auth/register')
             .send({
@@ -24,7 +24,7 @@ describe('POST /api/categories', () => {
         const accessToken = registerResponse.body.data?.accessToken
         const cookies = registerResponse.headers['set-cookie']
 
-        // Make the user an admin directly in the database
+        
         await context.database
             .update(users)
             .set({ role: 'admin' })
@@ -48,7 +48,7 @@ describe('POST /api/categories', () => {
             slug: 'general-discussion',
         })
 
-        // Verify HTTP headers
+        
         expect(response.headers['location']).toBe(`/api/v1/categories/${response.body.data.id}`)
         expect(response.headers['x-request-id']).toBeDefined()
 
@@ -76,7 +76,7 @@ describe('POST /api/categories', () => {
     it('returns 403 for non-admin users', async () => {
         const context = await createTestApplication()
 
-        // Register a regular user
+        
         const registerResponse = await request(context.app)
             .post('/api/v1/auth/register')
             .send({

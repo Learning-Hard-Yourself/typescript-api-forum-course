@@ -9,7 +9,7 @@ describe('PATCH /api/v1/profiles/:userId', () => {
     it('updates profile for a user', async () => {
         const context = await createTestApplication()
 
-        // Authenticate user
+        
         const cookie = await authenticateUser(context.app, {
             username: 'testuser',
             email: 'test@example.com',
@@ -17,7 +17,7 @@ describe('PATCH /api/v1/profiles/:userId', () => {
             password: 'SecurePassword123!',
         })
 
-        // Get user ID
+        
         const [user] = await context.database.select().from(users).where(eq(users.email, 'test@example.com'))
         const userId = user.id
 
@@ -37,7 +37,7 @@ describe('PATCH /api/v1/profiles/:userId', () => {
             location: 'Earth',
         })
 
-        // Verify DB
+        
         const [profile] = await context.database.select().from(profiles).where(eq(profiles.userId, userId))
         expect(profile).toMatchObject({
             userId,

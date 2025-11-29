@@ -9,7 +9,7 @@ describe('GET /api/v1/profiles/:userId', () => {
     it('retrieves a user profile', async () => {
         const context = await createTestApplication()
 
-        // Create user
+        
         const userId = uuidv7()
         await context.database.insert(users).values({
             id: userId,
@@ -22,7 +22,7 @@ describe('GET /api/v1/profiles/:userId', () => {
             lastActiveAt: new Date().toISOString(),
         })
 
-        // Create profile
+        
         await context.database.insert(profiles).values({
             userId,
             bio: 'Software developer',
@@ -32,7 +32,7 @@ describe('GET /api/v1/profiles/:userId', () => {
 
         const response = await request(context.app).get(`/api/v1/profiles/${userId}`).expect(200)
 
-        // Verify HTTP headers
+        
         expect(response.headers['x-request-id']).toBeDefined()
 
         expect(response.body.data).toMatchObject({

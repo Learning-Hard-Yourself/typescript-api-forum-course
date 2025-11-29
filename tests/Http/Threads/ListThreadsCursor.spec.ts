@@ -10,7 +10,7 @@ describe('GET /api/v1/threads', () => {
     it('returns threads with cursor pagination', async () => {
         const context = await createTestApplication()
 
-        // Authenticate user
+        
         const cookie = await authenticateUser(context.app, {
             username: 'testuser',
             email: 'test@example.com',
@@ -18,7 +18,7 @@ describe('GET /api/v1/threads', () => {
             password: 'SecurePassword123!',
         })
 
-        // Create category
+        
         const categoryId = uuidv7()
         await context.database.insert(categories).values({
             id: categoryId,
@@ -29,11 +29,11 @@ describe('GET /api/v1/threads', () => {
             updatedAt: new Date().toISOString(),
         })
 
-        // Get the authenticated user's ID
+        
         const [user] = await context.database.select().from(users).limit(1)
         const authorId = user.id
 
-        // Create multiple threads
+        
         const threadIds: string[] = []
         for (let i = 0; i < 5; i++) {
             const threadId = uuidv7()
@@ -53,12 +53,12 @@ describe('GET /api/v1/threads', () => {
             })
         }
 
-        // Fetch first page
+        
         const response = await authenticatedRequest(context.app, cookie)
             .get('/api/v1/threads?first=2')
             .expect(200)
 
-        // Verify cursor pagination structure
+        
         expect(response.body).toHaveProperty('edges')
         expect(response.body).toHaveProperty('pageInfo')
         expect(response.body.edges).toHaveLength(2)
@@ -66,13 +66,13 @@ describe('GET /api/v1/threads', () => {
         expect(response.body.pageInfo.hasPreviousPage).toBe(false)
         expect(response.body.pageInfo.endCursor).toBeDefined()
 
-        // Each edge should have node and cursor
+        
         expect(response.body.edges[0]).toHaveProperty('node')
         expect(response.body.edges[0]).toHaveProperty('cursor')
         expect(response.body.edges[0].node).toHaveProperty('id')
         expect(response.body.edges[0].node).toHaveProperty('title')
 
-        // Fetch next page using cursor
+        
         const nextCursor = response.body.pageInfo.endCursor
         const nextResponse = await authenticatedRequest(context.app, cookie)
             .get(`/api/v1/threads?first=2&after=${nextCursor}`)
@@ -81,7 +81,7 @@ describe('GET /api/v1/threads', () => {
         expect(nextResponse.body.edges).toHaveLength(2)
         expect(nextResponse.body.pageInfo.hasPreviousPage).toBe(true)
 
-        // Verify HTTP headers
+        
         expect(response.headers['x-request-id']).toBeDefined()
     })
 
@@ -103,7 +103,7 @@ describe('GET /api/v1/threads', () => {
     it('filters by categoryId', async () => {
         const context = await createTestApplication()
 
-        // Create user for thread author
+        
         const authorId = uuidv7()
         await context.database.insert(users).values({
             id: authorId,
@@ -115,7 +115,7 @@ describe('GET /api/v1/threads', () => {
             lastActiveAt: new Date().toISOString(),
         })
 
-        // Create two categories
+        
         const categoryId1 = uuidv7()
         const categoryId2 = uuidv7()
 
@@ -124,7 +124,7 @@ describe('GET /api/v1/threads', () => {
             { id: categoryId2, name: 'Cat 2', slug: 'cat-2', order: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
         ])
 
-        // Create threads in different categories
+        
         await context.database.insert(threads).values([
             { id: uuidv7(), categoryId: categoryId1, authorId, title: 'Thread in Cat 1', slug: 'thread-cat-1', isPinned: false, isLocked: false, viewCount: 0, replyCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
             { id: uuidv7(), categoryId: categoryId2, authorId, title: 'Thread in Cat 2', slug: 'thread-cat-2', isPinned: false, isLocked: false, viewCount: 0, replyCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },

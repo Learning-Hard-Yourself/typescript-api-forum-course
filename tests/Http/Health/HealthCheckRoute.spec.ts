@@ -16,10 +16,10 @@ describe('GET /api/health', () => {
     expect(response.body.uptime).toBeGreaterThanOrEqual(0)
   })
 
-  it('returns healthy status at /health endpoint', async () => {
+  it('returns healthy status at /api/v1/health endpoint', async () => {
     const { app } = await createTestApplication()
 
-    const response = await request(app).get('/health')
+    const response = await request(app).get('/api/v1/health')
 
     expect(response.statusCode).toBe(200)
     expect(response.body.status).toBe('healthy')

@@ -10,7 +10,7 @@ describe('POST /api/posts', () => {
     it('creates a new post and updates thread stats', async () => {
         const context = await createTestApplication()
 
-        // Authenticate user
+        
         const cookie = await authenticateUser(context.app, {
             username: 'testuser',
             email: 'test@example.com',
@@ -18,11 +18,11 @@ describe('POST /api/posts', () => {
             password: 'SecurePassword123!',
         })
 
-        // Get authenticated user ID from database
+        
         const [user] = await context.database.select().from(users).where(eq(users.email, 'test@example.com'))
         const userId = user.id
 
-        // Create category
+        
         const categoryId = uuidv7()
         await context.database.insert(categories).values({
             id: categoryId,
@@ -33,7 +33,7 @@ describe('POST /api/posts', () => {
             updatedAt: new Date().toISOString(),
         })
 
-        // Create thread
+        
         const threadId = uuidv7()
         await context.database.insert(threads).values({
             id: threadId,
@@ -61,16 +61,16 @@ describe('POST /api/posts', () => {
             content: 'This is a reply.',
         })
 
-        // Verify HTTP headers
+        
         expect(response.headers['location']).toBe(`/api/v1/posts/${response.body.data.id}`)
         expect(response.headers['x-request-id']).toBeDefined()
 
-        // Verify Post
+        
         const [post] = await context.database.select().from(posts).where(eq(posts.id, response.body.data.id))
         expect(post).toBeDefined()
         expect(post.content).toBe('This is a reply.')
 
-        // Verify Thread Stats
+        
         const [thread] = await context.database.select().from(threads).where(eq(threads.id, threadId))
         expect(thread.replyCount).toBe(1)
         expect(thread.lastPostId).toBe(post.id)

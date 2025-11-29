@@ -10,7 +10,7 @@ describe('POST /api/threads', () => {
     it('creates a new thread with initial post', async () => {
         const context = await createTestApplication()
 
-        // Authenticate user
+        
         const cookie = await authenticateUser(context.app, {
             username: 'testuser',
             email: 'test@example.com',
@@ -18,7 +18,7 @@ describe('POST /api/threads', () => {
             password: 'SecurePassword123!',
         })
 
-        // Create category
+        
         const categoryId = uuidv7()
         await context.database.insert(categories).values({
             id: categoryId,
@@ -45,17 +45,17 @@ describe('POST /api/threads', () => {
             categoryId,
         })
 
-        // Verify HTTP headers
+        
         expect(response.headers['location']).toBe(`/api/v1/threads/${response.body.data.id}`)
         expect(response.headers['x-request-id']).toBeDefined()
 
-        // Verify Thread
+        
         const [thread] = await context.database.select().from(threads).where(eq(threads.id, response.body.data.id))
         expect(thread).toBeDefined()
         expect(thread.title).toBe('Hello World')
-        expect(thread.slug).toBe('hello-world') // Auto-generated slug
+        expect(thread.slug).toBe('hello-world') 
 
-        // Verify Initial Post
+        
         const [post] = await context.database.select().from(posts).where(eq(posts.threadId, thread.id))
         expect(post).toBeDefined()
         expect(post.content).toBe('This is the first post content.')

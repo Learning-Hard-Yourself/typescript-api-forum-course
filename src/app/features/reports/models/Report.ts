@@ -1,5 +1,6 @@
 import type { PostId, ReportId, ThreadId, UserId } from '@/app/shared/types/branded';
 import { createReportId } from '@/app/shared/types/branded';
+import { assertNever, matchDiscriminated } from '@/app/shared/types/exhaustive';
 
 export enum ReportType {
     Spam = 'SPAM',
@@ -102,5 +103,93 @@ export function createReport(input: CreateReportInput): Report {
         resolvedAt: null,
         resolvedBy: null,
         resolution: null,
+    }
+}
+
+/**
+ * Gets the primary entity ID from a report target using exhaustive checking.
+ * Compile-time error if a new target type is added but not handled.
+ */
+export function getTargetEntityId(target: ReportTarget): string {
+    switch (target.type) {
+        case 'post':
+            return target.postId
+        case 'thread':
+            return target.threadId
+        case 'user':
+            return target.userId
+        case 'comment':
+            return target.commentId
+        default:
+            return assertNever(target)
+    }
+}
+
+/**
+ * Gets the moderation queue name for a report target.
+ * Uses matchDiscriminated for type-safe exhaustive handling.
+ */
+export function getTargetModerationQueue(target: ReportTarget): string {
+    return matchDiscriminated(target, 'type', {
+        post: (t) => `posts:${t.threadId}`,
+        thread: (t) => `threads:${t.threadId}`,
+        user: (t) => `users:${t.userId}`,
+        comment: (t) => `comments:${t.postId}`,
+    })
+}
+
+/**
+ * Determines if a report target requires content review vs user review.
+ * Exhaustive switch ensures all target types are classified.
+ */
+export function isContentReport(target: ReportTarget): boolean {
+    switch (target.type) {
+        case 'post':
+        case 'thread':
+        case 'comment':
+            return true
+        case 'user':
+            return false
+        default:
+            return assertNever(target)
+    }
+}
+
+/**
+ * Gets notification recipients for a report based on target type.
+ * Exhaustive handling ensures proper escalation for all target types.
+ */
+export function getReportNotificationContext(target: ReportTarget): {
+    entityType: string
+    entityId: string
+    requiresImmediateReview: boolean
+} {
+    switch (target.type) {
+        case 'post':
+            return {
+                entityType: 'post',
+                entityId: target.postId,
+                requiresImmediateReview: false,
+            }
+        case 'thread':
+            return {
+                entityType: 'thread',
+                entityId: target.threadId,
+                requiresImmediateReview: false,
+            }
+        case 'user':
+            return {
+                entityType: 'user',
+                entityId: target.userId,
+                requiresImmediateReview: true,
+            }
+        case 'comment':
+            return {
+                entityType: 'comment',
+                entityId: target.commentId,
+                requiresImmediateReview: false,
+            }
+        default:
+            return assertNever(target)
     }
 }

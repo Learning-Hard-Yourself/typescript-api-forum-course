@@ -1,4 +1,5 @@
 import type { NotificationPayload } from '@/app/features/notifications/models/NotificationTypes'
+import { assertNever } from '@/app/shared/types/exhaustive'
 
 export class NotificationFormatter {
     public execute(notification: NotificationPayload): string {
@@ -9,11 +10,12 @@ export class NotificationFormatter {
                 return `New ${notification.voteType} on your post`
             case 'system':
                 return `System Alert: ${notification.message}`
-            default: {
-                const _exhaustive: never = notification
-                void _exhaustive
-                return 'Unknown notification'
-            }
+            case 'mention':
+                return `${notification.mentionedBy} mentioned you in a post`
+            case 'moderation':
+                return `Your ${notification.targetType} was ${notification.action}`
+            default:
+                return assertNever(notification)
         }
     }
 }

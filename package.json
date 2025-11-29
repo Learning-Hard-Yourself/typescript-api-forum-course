@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc --project tsconfig.json",
+    "migrate": "tsx scripts/migrate.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",

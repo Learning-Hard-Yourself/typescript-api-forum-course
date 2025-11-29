@@ -7,11 +7,12 @@ services:
       - ./data:/app/data
     environment:
       - PORT=3000
-      - DB_FILE_NAME=file:/app/data/database.db
+      - DB_PATH=/app/data/database.db
       - NODE_ENV=production
-      # Add R2 credentials here if needed
-      # - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
-      # - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
-      # - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
-      # - R2_BUCKET_NAME=${R2_BUCKET_NAME}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME}
+      - R2_PUBLIC_URL=${R2_PUBLIC_URL}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     restart: unless-stopped

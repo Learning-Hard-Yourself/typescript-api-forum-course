@@ -50,10 +50,8 @@ describe('Authentication routes', () => {
       role: 'user',
     })
     expect(typeof response.body.data.user.id).toBe('string')
-    // Verify accessToken is returned
     expect(typeof response.body.data.accessToken).toBe('string')
     expect(response.body.data.accessToken.length).toBeGreaterThan(0)
-    // Verify session cookie is set
     expect(Array.isArray(response.get('set-cookie'))).toBe(true)
 
     const [record] = await database.select().from(users).where(eq(users.email, 'sarah@example.com')).limit(1)
@@ -96,7 +94,6 @@ describe('Authentication routes', () => {
     expect(response.statusCode).toBe(200)
     expect(Array.isArray(response.get('set-cookie'))).toBe(true)
     expect(response.body.data.user.email).toBe('sarah@example.com')
-    // Verify accessToken is returned on login
     expect(typeof response.body.data.accessToken).toBe('string')
     expect(response.body.data.accessToken.length).toBeGreaterThan(0)
   })
@@ -132,7 +129,6 @@ describe('Authentication routes', () => {
 
     const accessToken = registerResponse.body.data.accessToken
 
-    // Use Bearer token for authentication
     const sessionResponse = await request(app)
       .get('/api/v1/auth/me')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -153,7 +149,6 @@ describe('Authentication routes', () => {
 
     const cookies = registerResponse.get('set-cookie') ?? []
 
-    // Use cookies for authentication (refresh token pattern)
     const sessionResponse = await cookieAuthenticatedRequest(app, cookies).get('/api/v1/auth/me')
 
     expect(sessionResponse.statusCode).toBe(200)
@@ -172,7 +167,6 @@ describe('Authentication routes', () => {
 
     const cookies = registerResponse.get('set-cookie') ?? []
 
-    // Use cookies to refresh and get new accessToken
     const refreshResponse = await cookieAuthenticatedRequest(app, cookies).post('/api/v1/auth/refresh')
 
     expect(refreshResponse.statusCode).toBe(200)
@@ -197,7 +191,6 @@ describe('Authentication routes', () => {
     expect(logoutResponse.statusCode).toBe(204)
     expect(Array.isArray(logoutResponse.get('set-cookie'))).toBe(true)
 
-    // After logout, session should be invalid
     const newCookies = logoutResponse.get('set-cookie') ?? []
     const sessionResponse = await cookieAuthenticatedRequest(app, newCookies).get('/api/v1/auth/me')
     expect(sessionResponse.statusCode).toBe(401)

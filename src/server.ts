@@ -1,9 +1,13 @@
-import 'dotenv-safe/config'
 import { Application } from '@/bootstrap/Application'
 import { createDatabase } from '@/config/database'
+import 'dotenv-safe/config'
 
 const port = Number(process.env.PORT ?? 3000)
-const databaseFile = process.env.DB_FILE_NAME ?? 'file:database.db'
+
+// DB_PATH is a filesystem path (e.g. `database.db` or `/app/data/database.db`).
+// We always pass a `file:` DSN to SQLite.
+const dbPath = process.env.DB_PATH ?? 'database.db'
+const databaseFile = dbPath.startsWith('file:') ? dbPath : `file:${dbPath}`
 
 async function bootstrap(): Promise<void> {
   const { database } = createDatabase(databaseFile)

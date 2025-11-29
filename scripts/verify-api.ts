@@ -1,7 +1,29 @@
+import Database from 'better-sqlite3'
+import { spawn } from 'child_process'
 import { randomUUID } from 'crypto'
+import 'dotenv-safe/config'
 
 const BASE_URL = 'http://localhost:3001/api/v1'
 let cookie: string | null = null
+
+async function runMigrations(): Promise<void> {
+    console.log('\n🗄️  Running database migrations: npm run migrate')
+
+    await new Promise<void>((resolve, reject) => {
+        const child = spawn('npm', ['run', 'migrate'], {
+            stdio: 'inherit',
+            shell: process.platform === 'win32',
+        })
+
+        child.on('exit', (code) => {
+            if (code === 0) {
+                resolve()
+            } else {
+                reject(new Error(`npm run migrate failed with exit code ${code ?? 0}`))
+            }
+        })
+    })
+}
 
 async function request(method: string, endpoint: string, body?: any) {
     const headers: Record<string, string> = {
@@ -36,11 +58,36 @@ async function request(method: string, endpoint: string, body?: any) {
     return data
 }
 
+async function promoteUserToAdmin(userId: string): Promise<void> {
+    const dbPath = process.env.DB_PATH ?? 'database.db'
+    const databaseFile = dbPath.startsWith('file:') ? dbPath : `file:${dbPath}`
+
+    console.log(`\n🛡️  Promoting user ${userId} to admin in ${databaseFile}`)
+
+    const sqlite = new Database(databaseFile)
+    try {
+        const stmt = sqlite.prepare('UPDATE users SET role = ? WHERE id = ?')
+        const result = stmt.run('admin', userId)
+        if (result.changes === 0) {
+            console.warn('⚠️ No user row updated when promoting to admin')
+        } else {
+            console.log('✅ User promoted to admin')
+        }
+    } catch (error) {
+        console.error('❌ Failed to promote user to admin', error)
+    } finally {
+        sqlite.close()
+    }
+}
+
 async function main() {
     console.log('🚀 Starting End-to-End API Verification')
 
+    // 0. Run database migrations so the schema is up to date
+    await runMigrations()
+
     // Wait for server to be ready
-    await new Promise(r => setTimeout(r, 2000))
+    await new Promise((r) => setTimeout(r, 2000))
 
     // 1. Register
     const username = `user_${randomUUID().substring(0, 8)}`
@@ -68,21 +115,28 @@ async function main() {
     if (!user) throw new Error('Failed to get user')
     console.log('User ID:', user.data.user.id)
 
-    // 4. Create Thread
+    // 3.1 Promote user to admin so we can create categories and manage threads
+    await promoteUserToAdmin(user.data.user.id)
+
+    // 4. Ensure Category & Create Thread
     console.log('\n--- 4. Create Thread ---')
-    // We need a category first. Assuming one exists or we can create one?
-    // Let's try to list categories first
-    const categories = await request('GET', '/categories')
+    // First, try to list categories
+    let categories = await request('GET', '/categories')
     console.log('Categories Response:', JSON.stringify(categories, null, 2))
     let categoryId = categories?.data?.[0]?.id
 
+    // If none exist, create one as admin
     if (!categoryId) {
-        console.log('⚠️ No categories found, creating one (if admin)...')
-        // This might fail if we are not admin, but let's try or skip
-        // For now, let's assume we can't create category as normal user
-        // We will try to create a thread with a random UUID if no category, expecting failure or mock
-        // Actually, let's just use a hardcoded UUID if list is empty, likely 404
-        categoryId = '00000000-0000-0000-0000-000000000000'
+        console.log('⚠️ No categories found, creating one as admin...')
+        const createdCategory = await request('POST', '/categories', {
+            name: `General ${randomUUID().substring(0, 4)}`,
+            description: 'Category created by verify-api script',
+            slug: `general-${randomUUID().substring(0, 4)}`
+        })
+
+        categories = await request('GET', '/categories')
+        console.log('Categories After Create:', JSON.stringify(categories, null, 2))
+        categoryId = createdCategory?.data?.id ?? categories?.data?.[0]?.id
     }
 
     const thread = await request('POST', '/threads', {

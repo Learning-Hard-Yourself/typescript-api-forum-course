@@ -11,11 +11,6 @@ export class HealthRoutes {
   }
 
   public map(server: Express): void {
-    // Health check without versioning (best practice)
-    server.get('/health', (request, response) => {
-      this.controller.handle(request, response)
-    })
-    // Also available at versioned endpoint for backwards compatibility
     server.get('/api/v1/health', (request, response) => {
       this.controller.handle(request, response)
     })

@@ -31,7 +31,7 @@ RUN mkdir -p /app/data
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV DB_FILE_NAME=file:/app/data/database.db
+ENV DB_PATH=/app/data/database.db
 
 # Expose port
 EXPOSE 3000

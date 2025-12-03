@@ -4,8 +4,7 @@ import 'dotenv-safe/config'
 import { runMigrations } from '@/config/migrator'
 
 async function main(): Promise<void> {
-    const dbPath = process.env.DB_PATH ?? 'database.db'
-    const databaseFile = dbPath.startsWith('file:') ? dbPath : `file:${dbPath}`
+    const databaseFile = process.env.DB_PATH ?? 'database.db'
 
     console.log(`\n🗄️  Running migrations on ${databaseFile}`)
 

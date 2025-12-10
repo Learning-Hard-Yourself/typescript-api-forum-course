@@ -78,6 +78,12 @@ const createAuth = ({ database }: ApplicationDependencies) =>
       updateAge: ACCESS_TOKEN_EXPIRES_IN, // How often to refresh the session
       storeSessionInDatabase: true,
     },
+    trustedOrigins: [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
+    ],
     plugins: [
       bearer(),
     ],

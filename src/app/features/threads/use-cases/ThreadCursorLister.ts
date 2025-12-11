@@ -13,7 +13,7 @@ import {
     DEFAULT_CURSOR_PAGINATION,
 } from '@/app/shared/types/CursorPagination'
 import type { ForumDatabase } from '@/config/database-types'
-import { threads } from '@/config/schema'
+import { categories, threads, users } from '@/config/schema'
 import type { Thread } from '@/types'
 
 export interface ThreadCursorListParams extends CursorPaginationParams {
@@ -40,7 +40,7 @@ export class ThreadCursorLister {
         if (hasMore) results.pop()
         if (isBackward) results.reverse()
 
-        return this.buildResponse(results as Thread[], params, isBackward, hasMore)
+        return this.buildResponse(results, params, isBackward, hasMore)
     }
 
     private isBackwardPagination(params: ThreadCursorListParams): boolean {
@@ -86,14 +86,35 @@ export class ThreadCursorLister {
         sortBy: ThreadSortBy,
         isBackward: boolean,
         limit: number,
-    ) {
+    ): Promise<Thread[]> {
         const orderColumn = this.getSortColumn(sortBy)
         const orderDirection = isBackward ? asc : desc
 
-        let query = this.database.select().from(threads)
+        let query = this.database
+            .select({
+                thread: threads,
+                author: users,
+                category: categories,
+            })
+            .from(threads)
+            .leftJoin(users, eq(users.id, threads.authorId))
+            .leftJoin(categories, eq(categories.id, threads.categoryId))
+
         if (whereClause) query = query.where(whereClause)
 
-        return query.orderBy(orderDirection(orderColumn)).limit(limit + 1)
+        const rows = await query.orderBy(orderDirection(orderColumn)).limit(limit + 1)
+
+        type Row = {
+            thread: typeof threads.$inferSelect
+            author: typeof users.$inferSelect | null
+            category: typeof categories.$inferSelect | null
+        }
+
+        return (rows as Row[]).map((row) => ({
+            ...row.thread,
+            author: row.author ?? undefined,
+            category: row.category ?? undefined,
+        })) as Thread[]
     }
 
     private buildResponse(

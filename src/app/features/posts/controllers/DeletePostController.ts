@@ -1,12 +1,10 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import type { PostDeleteRequest } from '@/app/features/posts/requests/PostDeleteRequest'
 import type { PostDeleter } from '@/app/features/posts/use-cases/PostDeleter'
 import type { Logger } from '@/app/shared/logging/Logger'
 
 export class DeletePostController {
     public constructor(
-        private readonly deleteRequest: PostDeleteRequest,
         private readonly postDeleter: PostDeleter,
         private readonly logger?: Logger,
     ) {}
@@ -21,15 +19,14 @@ export class DeletePostController {
                 return
             }
 
-            const payload = this.deleteRequest.validate(request.body)
             await this.postDeleter.execute({
                 postId,
                 deleterId: userId,
-                reason: payload.reason,
             })
             this.logger?.info('Post deleted', { postId, userId })
             response.status(204).send()
         } catch (error) {
+            console.log('Error to delete post', error)
             next(error)
         }
     }

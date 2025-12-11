@@ -11,7 +11,6 @@ import { StorePostController } from '@/app/features/posts/controllers/StorePostC
 import { DrizzlePostEditRepository } from '@/app/features/posts/repositories/DrizzlePostEditRepository'
 import { DrizzlePostRepository } from '@/app/features/posts/repositories/DrizzlePostRepository'
 import { PostCreationRequest } from '@/app/features/posts/requests/PostCreationRequest'
-import { PostDeleteRequest } from '@/app/features/posts/requests/PostDeleteRequest'
 import { PostEditRequest } from '@/app/features/posts/requests/PostEditRequest'
 import { PostReplyRequest } from '@/app/features/posts/requests/PostReplyRequest'
 import { PostCreator } from '@/app/features/posts/use-cases/PostCreator'
@@ -59,7 +58,7 @@ export class PostRoutes {
         this.replyController = new ReplyPostController(new PostReplyRequest(), postReplier, logger)
         this.indexThreadPostsController = new IndexThreadPostsController(threadPostsLister, logger)
         this.editController = new EditPostController(new PostEditRequest(), postEditor, logger)
-        this.deleteController = new DeletePostController(new PostDeleteRequest(), postDeleter, logger)
+        this.deleteController = new DeletePostController(postDeleter, logger)
         this.restoreController = new RestorePostController(postRestorer, logger)
         this.historyController = new HistoryPostController(postHistoryLister, logger)
     }

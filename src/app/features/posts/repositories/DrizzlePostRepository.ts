@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 
 import type { ForumDatabase } from '@/config/database-types'
@@ -24,7 +24,7 @@ export class DrizzlePostRepository implements PostRepository {
         const result = await this.database
             .select()
             .from(posts)
-            .where(eq(posts.threadId, threadId))
+            .where(and(eq(posts.threadId, threadId), isNull(posts.deletedAt)))
 
         return result as Post[]
     }

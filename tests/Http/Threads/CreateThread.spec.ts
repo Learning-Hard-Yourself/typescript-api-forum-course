@@ -42,7 +42,11 @@ describe('POST /api/threads', () => {
 
         expect(response.body.data).toMatchObject({
             title: 'Hello World',
-            categoryId,
+            category: {
+                id: categoryId,
+                name: 'General',
+                slug: 'general',
+            },
         })
 
         

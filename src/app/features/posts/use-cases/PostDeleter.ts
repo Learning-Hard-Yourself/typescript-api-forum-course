@@ -14,6 +14,7 @@ export class PostDeleter {
         const { postId, deleterId } = input
 
         const post = await this.postRepository.findById(postId)
+        console.log('Post to delete', post)
 
         if (!post) {
             throw new NotFoundError(`Post with ID ${postId} not found`)

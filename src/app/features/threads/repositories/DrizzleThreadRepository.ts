@@ -2,7 +2,7 @@ import { eq, sql } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 
 import type { ForumDatabase } from '@/config/database-types'
-import { posts, threads } from '@/config/schema'
+import { categories, posts, threads, users } from '@/config/schema'
 import type { Thread } from '@/types'
 import type { ThreadCreationData, ThreadRepository } from './ThreadRepository'
 
@@ -11,41 +11,97 @@ export class DrizzleThreadRepository implements ThreadRepository {
     constructor(private readonly database: ForumDatabase) {}
 
     async findById(id: string): Promise<Thread | null> {
-        const [thread] = await this.database
-            .select()
+        const [row] = await this.database
+            .select({
+                thread: threads,
+                author: users,
+                category: categories,
+            })
             .from(threads)
+            .leftJoin(users, eq(users.id, threads.authorId))
+            .leftJoin(categories, eq(categories.id, threads.categoryId))
             .where(eq(threads.id, id))
             .limit(1)
 
-        return (thread as Thread) ?? null
+        if (!row) return null
+
+        return {
+            ...row.thread,
+            author: row.author ?? undefined,
+            category: row.category ?? undefined,
+        } as Thread
     }
 
     async findBySlug(slug: string): Promise<Thread | null> {
-        const [thread] = await this.database
-            .select()
+        const [row] = await this.database
+            .select({
+                thread: threads,
+                author: users,
+                category: categories,
+            })
             .from(threads)
+            .leftJoin(users, eq(users.id, threads.authorId))
+            .leftJoin(categories, eq(categories.id, threads.categoryId))
             .where(eq(threads.slug, slug))
             .limit(1)
 
-        return (thread as Thread) ?? null
+        if (!row) return null
+
+        return {
+            ...row.thread,
+            author: row.author ?? undefined,
+            category: row.category ?? undefined,
+        } as Thread
     }
 
     async findByCategoryId(categoryId: string): Promise<Thread[]> {
-        const result = await this.database
-            .select()
+        const rows = await this.database
+            .select({
+                thread: threads,
+                author: users,
+                category: categories,
+            })
             .from(threads)
+            .leftJoin(users, eq(users.id, threads.authorId))
+            .leftJoin(categories, eq(categories.id, threads.categoryId))
             .where(eq(threads.categoryId, categoryId))
 
-        return result as Thread[]
+        type Row = {
+            thread: typeof threads.$inferSelect
+            author: typeof users.$inferSelect | null
+            category: typeof categories.$inferSelect | null
+        }
+
+        return (rows as Row[]).map((row) => ({
+            ...row.thread,
+            author: row.author ?? undefined,
+            category: row.category ?? undefined,
+        })) as Thread[]
     }
 
     async findByAuthorId(authorId: string): Promise<Thread[]> {
-        const result = await this.database
-            .select()
+        const rows = await this.database
+            .select({
+                thread: threads,
+                author: users,
+                category: categories,
+            })
             .from(threads)
+            .leftJoin(users, eq(users.id, threads.authorId))
+            .leftJoin(categories, eq(categories.id, threads.categoryId))
             .where(eq(threads.authorId, authorId))
 
-        return result as Thread[]
+        type Row = {
+            thread: typeof threads.$inferSelect
+            author: typeof users.$inferSelect | null
+            category: typeof categories.$inferSelect | null
+        }
+
+        return (rows as Row[]).map((row) => ({
+            ...row.thread,
+            author: row.author ?? undefined,
+            category: row.category ?? undefined,
+        })) as Thread[]
     }
 
     async save(thread: Omit<Thread, 'id'>): Promise<Thread> {

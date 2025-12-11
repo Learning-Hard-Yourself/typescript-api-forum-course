@@ -1,5 +1,6 @@
 import type { Express } from 'express'
 
+import { DeleteThreadController } from '@/app/features/threads/controllers/DeleteThreadController'
 import { IndexThreadsCursorController } from '@/app/features/threads/controllers/IndexThreadsCursorController'
 import { LockThreadController } from '@/app/features/threads/controllers/LockThreadController'
 import { PinThreadController } from '@/app/features/threads/controllers/PinThreadController'
@@ -12,6 +13,7 @@ import { DrizzleThreadRepository } from '@/app/features/threads/repositories/Dri
 import { ThreadCreationRequest } from '@/app/features/threads/requests/ThreadCreationRequest'
 import { ThreadCreator } from '@/app/features/threads/use-cases/ThreadCreator'
 import { ThreadCursorLister } from '@/app/features/threads/use-cases/ThreadCursorLister'
+import { ThreadDeleter } from '@/app/features/threads/use-cases/ThreadDeleter'
 import { ThreadFinder } from '@/app/features/threads/use-cases/ThreadFinder'
 import { ThreadLocker } from '@/app/features/threads/use-cases/ThreadLocker'
 import { ThreadPinner } from '@/app/features/threads/use-cases/ThreadPinner'
@@ -32,6 +34,7 @@ export class ThreadRoutes {
     private readonly unpinController: UnpinThreadController
     private readonly lockController: LockThreadController
     private readonly unlockController: UnlockThreadController
+    private readonly deleteController: DeleteThreadController
     private readonly requireOwnership: ReturnType<typeof createRequireOwnership>
 
     public constructor(dependencies: ApplicationDependencies) {
@@ -45,6 +48,7 @@ export class ThreadRoutes {
         const threadPinner = new ThreadPinner(threadRepository)
         const threadLocker = new ThreadLocker(threadRepository)
         const threadCursorLister = new ThreadCursorLister(dependencies.database)
+        const threadDeleter = new ThreadDeleter(threadRepository)
 
         this.indexController = new IndexThreadsCursorController(threadCursorLister, logger)
         this.showController = new ShowThreadController(threadFinder, logger)
@@ -54,6 +58,7 @@ export class ThreadRoutes {
         this.unpinController = new UnpinThreadController(threadPinner, logger)
         this.lockController = new LockThreadController(threadLocker, logger)
         this.unlockController = new UnlockThreadController(threadLocker, logger)
+        this.deleteController = new DeleteThreadController(threadDeleter, logger)
         this.requireOwnership = createRequireOwnership(dependencies.database)
     }
 
@@ -66,5 +71,6 @@ export class ThreadRoutes {
         server.post('/api/v1/threads/:id/unpin', authMiddleware, validateIdParam, requireAnyRole('moderator', 'admin'), (req, res, next) => this.unpinController.handle(req, res, next))
         server.post('/api/v1/threads/:id/lock', authMiddleware, validateIdParam, requireAnyRole('moderator', 'admin'), (req, res, next) => this.lockController.handle(req, res, next))
         server.post('/api/v1/threads/:id/unlock', authMiddleware, validateIdParam, requireAnyRole('moderator', 'admin'), (req, res, next) => this.unlockController.handle(req, res, next))
+        server.delete('/api/v1/threads/:id', authMiddleware, validateIdParam, requireAnyRole('moderator', 'admin'), (req, res, next) => this.deleteController.handle(req, res, next))
     }
 }
